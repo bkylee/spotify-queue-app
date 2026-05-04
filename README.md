@@ -5,4 +5,4 @@ I created this app to allow users who don't have spotify or premium to have a ou
 - See the next 10 songs in my queue
 - Search and add songs to the queue
 
-I used Claude AI for the app creation and Azure Web App for hosting. 
+I used Claude AI, ChatGPT, and Gemini for the app creation and app security. Azure Web App for hosting. 
