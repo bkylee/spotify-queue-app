@@ -1,498 +1,1499 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brian's Queue</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --green: #1DB954; --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e;
-      --surface3: #282828; --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
-      --text: #fff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.35);
-      --radius: 12px; --radius-sm: 8px;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text);
-      min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-    body::before {
-      content: ''; position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
-      width: 600px; height: 300px;
-      background: radial-gradient(ellipse, rgba(29,185,84,0.12) 0%, transparent 70%);
-      pointer-events: none; z-index: 0;
-    }
-    .container { width: 100%; max-width: 560px; padding: 0 1rem 4rem; position: relative; z-index: 1; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Brian's Queue</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --green: #1db954;
+        --bg: #0a0a0a;
+        --surface: #141414;
+        --surface2: #1e1e1e;
+        --surface3: #282828;
+        --border: rgba(255, 255, 255, 0.07);
+        --border-h: rgba(255, 255, 255, 0.14);
+        --text: #fff;
+        --t2: rgba(255, 255, 255, 0.6);
+        --t3: rgba(255, 255, 255, 0.32);
+        --red: #ff5555;
+        --radius: 12px;
+        --rsm: 8px;
+      }
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        top: -120px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 600px;
+        height: 300px;
+        background: radial-gradient(
+          ellipse,
+          rgba(29, 185, 84, 0.12) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+      .wrap {
+        width: 100%;
+        max-width: 560px;
+        padding: 0 1rem 4rem;
+        position: relative;
+        z-index: 1;
+      }
 
-    /* Header */
-    header { text-align: center; padding: 2.2rem 0 1.6rem; }
-    .profile-pic {
-      width: 64px; height: 64px; border-radius: 50%; background: var(--surface3);
-      margin: 0 auto 0.9rem; overflow: hidden; border: 2px solid rgba(29,185,84,0.3);
-      display: flex; align-items: center; justify-content: center; color: var(--text-3);
-    }
-    .profile-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    h1 { font-family: 'Syne', sans-serif; font-size: clamp(1.6rem, 5vw, 2.2rem);
-      font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; }
-    h1 span { color: var(--green); }
-    .subtitle { margin-top: 0.4rem; color: var(--text-2); font-size: 0.88rem; }
+      /* Header */
+      header {
+        text-align: center;
+        padding: 2rem 0 1.4rem;
+      }
+      .pfp {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--surface3);
+        margin: 0 auto 0.8rem;
+        overflow: hidden;
+        border: 2px solid rgba(29, 185, 84, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--t3);
+      }
+      .pfp img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      h1 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(1.5rem, 5vw, 2.1rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+      }
+      h1 span {
+        color: var(--green);
+      }
+      .sub {
+        margin-top: 0.4rem;
+        color: var(--t2);
+        font-size: 0.87rem;
+      }
 
-    /* Session bar */
-    .session-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 1.4rem; font-size: 0.8rem;
-    }
-    .session-name { color: var(--text-2); }
-    .session-name strong { color: var(--text); }
-    .session-expiry { color: var(--text-3); font-size: 0.75rem; }
-    .session-expiry span { color: var(--green); }
+      /* Session bar */
+      .sbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--rsm);
+        padding: 7px 12px;
+        margin-bottom: 1.3rem;
+        font-size: 0.79rem;
+      }
+      .sbar .name {
+        color: var(--t2);
+      }
+      .sbar .name strong {
+        color: var(--text);
+      }
+      .sbar .exp {
+        color: var(--t3);
+        font-size: 0.74rem;
+      }
+      .sbar .exp span {
+        color: var(--green);
+      }
 
-    /* Section label */
-    .section-label { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--text-3); margin-bottom: 0.6rem; }
+      /* Paused banner */
+      #paused-banner {
+        display: none;
+        background: rgba(255, 85, 85, 0.1);
+        border: 1px solid rgba(255, 85, 85, 0.25);
+        border-radius: var(--rsm);
+        padding: 0.7rem 1rem;
+        margin-bottom: 1.2rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: #ff9090;
+      }
 
-    /* Now Playing */
-    #now-playing-wrap { margin-bottom: 1.4rem; }
-    #now-playing-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 12px; display: flex; align-items: center; gap: 12px;
-    }
-    #now-playing-card.active { border-color: rgba(29,185,84,0.3); background: rgba(29,185,84,0.04); }
-    .now-art { width: 52px; height: 52px; border-radius: 6px; background: var(--surface3);
-      flex-shrink: 0; overflow: hidden; position: relative; }
-    .now-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .playing-bars { position: absolute; bottom: 4px; right: 4px; display: flex;
-      align-items: flex-end; gap: 2px; height: 12px; }
-    .playing-bars span { width: 3px; background: var(--green); border-radius: 2px;
-      animation: bar 1s ease-in-out infinite; }
-    .playing-bars span:nth-child(1) { animation-delay: 0s; height: 6px; }
-    .playing-bars span:nth-child(2) { animation-delay: 0.2s; height: 10px; }
-    .playing-bars span:nth-child(3) { animation-delay: 0.4s; height: 7px; }
-    @keyframes bar { 0%,100%{transform:scaleY(0.4)}50%{transform:scaleY(1)} }
-    .now-info { flex: 1; min-width: 0; }
-    .now-name { font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-    .now-meta { font-size: 0.78rem; color: var(--text-2); margin-top: 2px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .progress-bar { height: 3px; background: var(--surface3); border-radius: 2px; margin-top: 8px; overflow: hidden; }
-    .progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 1s linear; }
-    .now-paused-badge { font-size: 0.68rem; color: var(--text-3); background: var(--surface3);
-      border-radius: 4px; padding: 2px 6px; flex-shrink: 0; }
-    #now-playing-empty { color: var(--text-3); font-size: 0.85rem; text-align: center; padding: 0.8rem; width: 100%; }
+      /* Cooldown bar */
+      #cooldown-wrap {
+        display: none;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--rsm);
+        padding: 10px 14px;
+        margin-bottom: 1rem;
+      }
+      .cd-label {
+        font-size: 0.78rem;
+        color: var(--t2);
+        margin-bottom: 5px;
+      }
+      .cd-label span {
+        color: var(--green);
+        font-weight: 500;
+      }
+      .cd-bar {
+        height: 4px;
+        background: var(--surface3);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .cd-fill {
+        height: 100%;
+        background: var(--green);
+        border-radius: 2px;
+        transition: width 0.5s linear;
+      }
 
-    /* Queue list */
-    #queue-wrap { margin-bottom: 1.4rem; }
-    .queue-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
-    .refresh-btn { background: none; border: none; color: var(--text-3); cursor: pointer;
-      padding: 2px; display: flex; align-items: center; transition: color 0.15s; }
-    .refresh-btn:hover { color: var(--text-2); }
-    .refresh-btn.spinning svg { animation: spin 0.6s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #queue-list { display: flex; flex-direction: column; gap: 4px; }
-    .queue-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
-      border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); }
-    .queue-num { font-size: 0.7rem; color: var(--text-3); width: 16px; text-align: center; flex-shrink: 0; }
-    .queue-art { width: 34px; height: 34px; border-radius: 4px; background: var(--surface3); overflow: hidden; flex-shrink: 0; }
-    .queue-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .queue-info { flex: 1; min-width: 0; }
-    .queue-name { font-size: 0.82rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-    .queue-artist { font-size: 0.73rem; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .queue-dur { font-size: 0.72rem; color: var(--text-3); flex-shrink: 0; }
-    #queue-empty { color: var(--text-3); font-size: 0.85rem; text-align: center; padding: 0.6rem; }
+      /* Label */
+      .lbl {
+        font-size: 0.67rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--t3);
+        margin-bottom: 0.55rem;
+      }
 
-    .divider { height: 1px; background: var(--border); margin: 1.4rem 0; }
+      /* Now Playing */
+      #np-wrap {
+        margin-bottom: 1.3rem;
+      }
+      #np-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      #np-card.active {
+        border-color: rgba(29, 185, 84, 0.3);
+        background: rgba(29, 185, 84, 0.04);
+      }
+      .np-art {
+        width: 52px;
+        height: 52px;
+        border-radius: 6px;
+        background: var(--surface3);
+        flex-shrink: 0;
+        overflow: hidden;
+        position: relative;
+      }
+      .np-art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .bars {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 12px;
+      }
+      .bars span {
+        width: 3px;
+        background: var(--green);
+        border-radius: 2px;
+        animation: bar 1s ease-in-out infinite;
+      }
+      .bars span:nth-child(1) {
+        animation-delay: 0s;
+        height: 6px;
+      }
+      .bars span:nth-child(2) {
+        animation-delay: 0.2s;
+        height: 10px;
+      }
+      .bars span:nth-child(3) {
+        animation-delay: 0.4s;
+        height: 7px;
+      }
+      @keyframes bar {
+        0%,
+        100% {
+          transform: scaleY(0.4);
+        }
+        50% {
+          transform: scaleY(1);
+        }
+      }
+      .np-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .np-name {
+        font-weight: 500;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+      }
+      .np-meta {
+        font-size: 0.77rem;
+        color: var(--t2);
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .prog-bar {
+        height: 3px;
+        background: var(--surface3);
+        border-radius: 2px;
+        margin-top: 7px;
+        overflow: hidden;
+      }
+      .prog-fill {
+        height: 100%;
+        background: var(--green);
+        border-radius: 2px;
+        transition: width 1s linear;
+      }
+      .np-paused {
+        font-size: 0.67rem;
+        color: var(--t3);
+        background: var(--surface3);
+        border-radius: 4px;
+        padding: 2px 6px;
+        flex-shrink: 0;
+      }
+      #np-empty {
+        color: var(--t3);
+        font-size: 0.84rem;
+        text-align: center;
+        padding: 0.8rem;
+        width: 100%;
+      }
 
-    /* Search */
-    .search-wrap { position: relative; margin-bottom: 1rem; }
-    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-      color: var(--text-3); pointer-events: none; }
-    #search-input {
-      width: 100%; background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 0.9rem 1rem 0.9rem 2.8rem;
-      font-family: 'DM Sans', sans-serif; font-size: 1rem; color: var(--text);
-      outline: none; transition: border-color 0.2s, background 0.2s;
-    }
-    #search-input::placeholder { color: var(--text-3); }
-    #search-input:focus { border-color: var(--green); background: var(--surface2); }
-    .spinner { display: none; width: 18px; height: 18px; border: 2px solid var(--border-hover);
-      border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite;
-      position: absolute; right: 14px; top: 50%; transform: translateY(-50%); }
+      /* Reactions */
+      #reactions {
+        display: none;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      .react-btn {
+        background: var(--surface3);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 5px 12px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--text);
+      }
+      .react-btn:hover {
+        background: var(--surface2);
+        border-color: var(--border-h);
+      }
+      .react-btn.reacted {
+        background: rgba(29, 185, 84, 0.1);
+        border-color: rgba(29, 185, 84, 0.3);
+      }
+      .react-count {
+        font-size: 0.78rem;
+        color: var(--t2);
+      }
 
-    /* Results */
-    #results { display: flex; flex-direction: column; gap: 6px; }
-    .track { display: flex; align-items: center; gap: 12px; background: var(--surface);
-      border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 10px 14px 10px 10px; cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, transform 0.1s;
-      text-align: left; width: 100%; }
-    .track:hover { background: var(--surface2); border-color: var(--border-hover); transform: translateY(-1px); }
-    .track:active { transform: translateY(0); }
-    .track.queued { border-color: rgba(29,185,84,0.4); background: rgba(29,185,84,0.06); }
-    .track.queued .add-btn { background: var(--green); }
-    .track-art { width: 46px; height: 46px; border-radius: 6px; background: var(--surface3); flex-shrink: 0; overflow: hidden; }
-    .track-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .track-art-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-3); }
-    .track-info { flex: 1; min-width: 0; }
-    .track-name { font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #ffffff; }
-    .track-meta { font-size: 0.78rem; color: var(--text-2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .track-dur { font-size: 0.75rem; color: var(--text-3); flex-shrink: 0; margin-right: 8px; }
-    .add-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--surface3); border: none;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-      transition: background 0.15s; cursor: pointer; color: var(--text); }
-    .track:hover .add-btn { background: var(--green); }
+      /* Queue */
+      #q-wrap {
+        margin-bottom: 1.3rem;
+      }
+      .q-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.55rem;
+      }
+      .ref-btn {
+        background: none;
+        border: none;
+        color: var(--t3);
+        cursor: pointer;
+        padding: 2px;
+        display: flex;
+        align-items: center;
+        transition: color 0.15s;
+      }
+      .ref-btn:hover {
+        color: var(--t2);
+      }
+      .ref-btn.spin svg {
+        animation: spin 0.6s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      #q-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .q-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: var(--rsm);
+        background: var(--surface);
+        border: 1px solid var(--border);
+      }
+      .q-num {
+        font-size: 0.69rem;
+        color: var(--t3);
+        width: 16px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+      .q-art {
+        width: 34px;
+        height: 34px;
+        border-radius: 4px;
+        background: var(--surface3);
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .q-art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .q-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .q-name {
+        font-size: 0.82rem;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+      }
+      .q-sub {
+        font-size: 0.72rem;
+        color: var(--t2);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .q-by {
+        color: var(--green);
+        font-size: 0.68rem;
+      }
+      .q-dur {
+        font-size: 0.71rem;
+        color: var(--t3);
+        flex-shrink: 0;
+      }
+      .vote-btn {
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 3px 8px;
+        font-size: 0.72rem;
+        color: var(--t2);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        flex-shrink: 0;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+      }
+      .vote-btn:hover {
+        border-color: var(--green);
+        color: var(--green);
+      }
+      .vote-btn.voted {
+        border-color: var(--green);
+        color: var(--green);
+        background: rgba(29, 185, 84, 0.07);
+      }
+      #q-empty {
+        color: var(--t3);
+        font-size: 0.84rem;
+        text-align: center;
+        padding: 0.6rem;
+      }
 
-    /* Toast */
-    #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px);
-      background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 100px;
-      padding: 0.6rem 1.2rem; font-size: 0.875rem; white-space: nowrap;
-      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 999; }
-    #toast.show { transform: translateX(-50%) translateY(0); }
-    #toast.success { border-color: rgba(29,185,84,0.4); color: var(--green); }
-    #toast.error { border-color: rgba(255,80,80,0.3); color: #ff7070; }
+      /* Tabs */
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 1.3rem 0;
+      }
+      .tabs {
+        display: flex;
+        gap: 2px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--rsm);
+        padding: 3px;
+        margin-bottom: 1rem;
+      }
+      .tab {
+        flex: 1;
+        padding: 0.5rem;
+        text-align: center;
+        font-size: 0.82rem;
+        font-weight: 500;
+        border-radius: 6px;
+        cursor: pointer;
+        color: var(--t2);
+        transition:
+          background 0.15s,
+          color 0.15s;
+        border: none;
+        background: none;
+      }
+      .tab.active {
+        background: var(--surface2);
+        color: var(--text);
+      }
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
 
-    .hint { text-align: center; padding: 2.5rem 0; color: var(--text-3); }
-    .hint svg { margin-bottom: 0.8rem; opacity: 0.4; display: block; margin-left: auto; margin-right: auto; }
-    .hint p { font-size: 0.9rem; }
+      /* Search */
+      .s-wrap {
+        position: relative;
+        margin-bottom: 0.9rem;
+      }
+      .s-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--t3);
+        pointer-events: none;
+      }
+      #s-input {
+        width: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.85rem 1rem 0.85rem 2.8rem;
+        font-family: "DM Sans", sans-serif;
+        font-size: 1rem;
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      #s-input::placeholder {
+        color: var(--t3);
+      }
+      #s-input:focus {
+        border-color: var(--green);
+      }
+      .spinner {
+        display: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--border-h);
+        border-top-color: var(--green);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
 
-    #queued-badge { display: none; text-align: center; margin-top: 1.2rem; font-size: 0.8rem; color: var(--text-3); }
-    #queued-badge span { color: var(--green); font-weight: 500; }
+      /* Results */
+      #results {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .track {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px 14px 10px 10px;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          transform 0.1s;
+        text-align: left;
+        width: 100%;
+      }
+      .track:hover {
+        background: var(--surface2);
+        border-color: var(--border-h);
+        transform: translateY(-1px);
+      }
+      .track:active {
+        transform: translateY(0);
+      }
+      .track.queued {
+        border-color: rgba(29, 185, 84, 0.4);
+        background: rgba(29, 185, 84, 0.05);
+      }
+      .track.queued .add-btn {
+        background: var(--green);
+      }
+      .track.blocked {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .track.blocked .add-btn {
+        background: var(--surface3);
+      }
+      .t-art {
+        width: 46px;
+        height: 46px;
+        border-radius: 6px;
+        background: var(--surface3);
+        flex-shrink: 0;
+        overflow: hidden;
+      }
+      .t-art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .t-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--t3);
+      }
+      .t-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .t-name {
+        font-weight: 500;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+      }
+      .t-meta {
+        font-size: 0.77rem;
+        color: var(--t2);
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .t-dur {
+        font-size: 0.74rem;
+        color: var(--t3);
+        flex-shrink: 0;
+        margin-right: 8px;
+      }
+      .blocked-tag {
+        font-size: 0.66rem;
+        color: var(--red);
+        background: rgba(255, 85, 85, 0.1);
+        border-radius: 4px;
+        padding: 1px 5px;
+        flex-shrink: 0;
+      }
+      .already-tag {
+        font-size: 0.66rem;
+        color: var(--t3);
+        background: var(--surface3);
+        border-radius: 4px;
+        padding: 1px 5px;
+        flex-shrink: 0;
+      }
+      .add-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--surface3);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.15s;
+        cursor: pointer;
+        color: var(--text);
+      }
+      .track:not(.blocked):not(.queued):hover .add-btn {
+        background: var(--green);
+      }
 
-    #recent-section { margin-top: 1.8rem; }
-    #recent-list { display: flex; flex-direction: column; gap: 4px; }
-    .recent-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
-      border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); }
-    .recent-art { width: 32px; height: 32px; border-radius: 4px; background: var(--surface3); overflow: hidden; flex-shrink: 0; }
-    .recent-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .recent-info { flex: 1; min-width: 0; }
-    .recent-name { font-size: 0.82rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .recent-artist { font-size: 0.73rem; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .check-icon { color: var(--green); flex-shrink: 0; }
+      /* History */
+      .h-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: var(--rsm);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        margin-bottom: 4px;
+      }
+      .h-art {
+        width: 34px;
+        height: 34px;
+        border-radius: 4px;
+        background: var(--surface3);
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .h-art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .h-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .h-name {
+        font-size: 0.82rem;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+      }
+      .h-sub {
+        font-size: 0.72rem;
+        color: var(--t2);
+      }
+      .h-time {
+        font-size: 0.7rem;
+        color: var(--t3);
+        flex-shrink: 0;
+      }
 
-    /* Session expired overlay */
-    #expired-overlay {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-      z-index: 100; align-items: center; justify-content: center; flex-direction: column;
-      text-align: center; padding: 2rem;
-    }
-    #expired-overlay.show { display: flex; }
-    #expired-overlay h2 { font-family: 'Syne', sans-serif; font-size: 1.5rem; margin-bottom: 0.5rem; }
-    #expired-overlay p { color: var(--text-2); margin-bottom: 1.5rem; }
-    #expired-overlay a { background: var(--green); color: #000; padding: 0.8rem 2rem;
-      border-radius: 100px; text-decoration: none; font-weight: 700; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <div class="profile-pic" id="profile-pic">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-      </div>
-      <h1>Update <span>Brian's</span> Queue</h1>
-      <p class="subtitle">Search for any track and it'll play next</p>
-    </header>
+      /* Leaderboard */
+      .lb-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: var(--rsm);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        margin-bottom: 4px;
+      }
+      .lb-rank {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--t3);
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+      .lb-rank.gold {
+        color: #ffd700;
+      }
+      .lb-rank.silver {
+        color: #c0c0c0;
+      }
+      .lb-rank.bronze {
+        color: #cd7f32;
+      }
+      .lb-art {
+        width: 34px;
+        height: 34px;
+        border-radius: 4px;
+        background: var(--surface3);
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .lb-art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .lb-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .lb-name {
+        font-size: 0.82rem;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+      }
+      .lb-artist {
+        font-size: 0.72rem;
+        color: var(--t2);
+      }
+      .lb-count {
+        font-size: 0.78rem;
+        color: var(--green);
+        font-weight: 600;
+        flex-shrink: 0;
+      }
 
-    <div class="session-bar">
-      <span class="session-name">Logged in as <strong id="session-name-label">Guest</strong></span>
-      <span class="session-expiry">Access expires <span id="session-expiry-label">—</span></span>
-    </div>
+      /* Toast */
+      #toast {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(80px);
+        background: var(--surface2);
+        border: 1px solid var(--border-h);
+        border-radius: 100px;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 999;
+      }
+      #toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+      #toast.success {
+        border-color: rgba(29, 185, 84, 0.4);
+        color: var(--green);
+      }
+      #toast.error {
+        border-color: rgba(255, 80, 80, 0.3);
+        color: #ff7070;
+      }
+      #toast.warn {
+        border-color: rgba(255, 180, 0, 0.3);
+        color: #ffcc55;
+      }
 
-    <div id="now-playing-wrap">
-      <p class="section-label">Now playing</p>
-      <div id="now-playing-card"><div id="now-playing-empty">Nothing playing right now</div></div>
-    </div>
+      .hint {
+        text-align: center;
+        padding: 2rem 0;
+        color: var(--t3);
+      }
+      .hint svg {
+        margin-bottom: 0.7rem;
+        opacity: 0.35;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hint p {
+        font-size: 0.88rem;
+      }
 
-    <div id="queue-wrap">
-      <div class="queue-header">
-        <p class="section-label" style="margin:0">Up next</p>
-        <button class="refresh-btn" id="refresh-queue-btn" title="Refresh">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      #queued-badge {
+        display: none;
+        text-align: center;
+        margin-top: 1rem;
+        font-size: 0.79rem;
+        color: var(--t3);
+      }
+      #queued-badge span {
+        color: var(--green);
+        font-weight: 500;
+      }
+
+      #expired-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.88);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem;
+      }
+      #expired-overlay.show {
+        display: flex;
+      }
+      #expired-overlay h2 {
+        font-family: "Syne", sans-serif;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+      #expired-overlay p {
+        color: var(--t2);
+        margin-bottom: 1.5rem;
+      }
+      #expired-overlay a {
+        background: var(--green);
+        color: #000;
+        padding: 0.8rem 2rem;
+        border-radius: 100px;
+        text-decoration: none;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="pfp" id="pfp">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+            />
           </svg>
+        </div>
+        <h1>Update <span>Brian's</span> Queue</h1>
+        <p class="sub">Search for any track and it'll play next</p>
+      </header>
+
+      <div class="sbar">
+        <span class="name">Hi, <strong id="sn-label">Guest</strong></span>
+        <span class="exp">Access expires <span id="se-label">—</span></span>
+      </div>
+
+      <div id="paused-banner">⏸ Queueing is paused by the host</div>
+
+      <div id="cooldown-wrap">
+        <div class="cd-label">Next song in <span id="cd-label">0s</span></div>
+        <div class="cd-bar">
+          <div class="cd-fill" id="cd-fill" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <!-- Now Playing -->
+      <div id="np-wrap">
+        <p class="lbl">Now playing</p>
+        <div id="np-card">
+          <div id="np-empty">Nothing playing right now</div>
+        </div>
+        <div id="reactions"></div>
+      </div>
+
+      <!-- Up Next -->
+      <div id="q-wrap">
+        <div class="q-header">
+          <p class="lbl" style="margin: 0">Up next</p>
+          <button class="ref-btn" id="ref-btn" title="Refresh">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path
+                d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
+              />
+            </svg>
+          </button>
+        </div>
+        <div id="q-list"><div id="q-empty">Queue is empty</div></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('search')">
+          🔍 Search
         </button>
+        <button class="tab" onclick="switchTab('history')">🕓 History</button>
+        <button class="tab" onclick="switchTab('top')">🏆 Top</button>
       </div>
-      <div id="queue-list"><div id="queue-empty">Queue is empty</div></div>
-    </div>
 
-    <div class="divider"></div>
+      <!-- Search tab -->
+      <div class="tab-panel active" id="tab-search">
+        <div class="s-wrap">
+          <svg
+            class="s-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="search"
+            id="s-input"
+            placeholder="Search songs, artists, albums…"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <div class="spinner" id="spinner"></div>
+        </div>
+        <div id="results">
+          <div class="hint" id="hint">
+            <svg
+              width="34"
+              height="34"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M9 18V5l12-2v13" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+            <p>Type to search for a song</p>
+          </div>
+        </div>
+        <div id="queued-badge">
+          You've added <span id="qc">0</span> song(s) to the queue
+        </div>
+      </div>
 
-    <p class="section-label">Add a song</p>
-    <div class="search-wrap">
-      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input type="search" id="search-input" placeholder="Search songs, artists, albums…" autocomplete="off" spellcheck="false" />
-      <div class="spinner" id="spinner"></div>
-    </div>
+      <!-- History tab -->
+      <div class="tab-panel" id="tab-history">
+        <div id="history-list">
+          <div class="hint"><p>No songs played yet tonight</p></div>
+        </div>
+      </div>
 
-    <div id="results">
-      <div class="hint" id="hint">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-        </svg>
-        <p>Type to search for a song</p>
+      <!-- Top tab -->
+      <div class="tab-panel" id="tab-top">
+        <div id="lb-list">
+          <div class="hint"><p>No songs requested yet</p></div>
+        </div>
       </div>
     </div>
 
-    <div id="queued-badge">You've added <span id="queued-count">0</span> song(s) to the queue</div>
-
-    <div id="recent-section" style="display:none">
-      <p class="section-label" style="margin-top:1.5rem">Recently queued by you</p>
-      <div id="recent-list"></div>
+    <div id="expired-overlay">
+      <h2>Access Expired</h2>
+      <p>Your session has ended. Ask the host for a new code.</p>
+      <a href="/">Get a new code</a>
     </div>
-  </div>
+    <div id="toast"><span id="toast-text"></span></div>
 
-  <div id="expired-overlay">
-    <h2>Access Expired</h2>
-    <p>Your session has ended. Ask the host for a new access code.</p>
-    <a href="/">Get a new code</a>
-  </div>
+    <script>
+      // ── Session ────────────────────────────────────────────────────────────
+      const SID = localStorage.getItem("queueSessionId");
+      const GNAME = localStorage.getItem("queueGuestName") || "Guest";
+      const EXP = parseInt(localStorage.getItem("queueExpiresAt") || "0");
 
-  <div id="toast"><span id="toast-text"></span></div>
-
-  <script>
-    // ── Session check ─────────────────────────────────────────────────
-    const SESSION_ID = localStorage.getItem('queueSessionId');
-    const GUEST_NAME = localStorage.getItem('queueGuestName') || 'Guest';
-    const EXPIRES_AT = parseInt(localStorage.getItem('queueExpiresAt') || '0');
-
-    if (!SESSION_ID) { window.location.href = '/'; }
-
-    // Verify session is still valid server-side
-    fetch('/api/access/check', { headers: { 'x-session-id': SESSION_ID } })
-      .then(r => r.json())
-      .then(d => { if (!d.valid) { localStorage.clear(); window.location.href = '/'; } })
-      .catch(() => {});
-
-    // Show guest name and expiry
-    document.getElementById('session-name-label').textContent = GUEST_NAME;
-    function updateExpiry() {
-      const remaining = EXPIRES_AT - Date.now();
-      if (remaining <= 0) {
-        document.getElementById('expired-overlay').classList.add('show');
-        return;
+      if (!SID) {
+        window.location.href = "/";
       }
-      const h = Math.floor(remaining / 3600000);
-      const m = Math.floor((remaining % 3600000) / 60000);
-      document.getElementById('session-expiry-label').textContent =
-        h > 0 ? `in ${h}h ${m}m` : `in ${m}m`;
-    }
-    updateExpiry();
-    setInterval(updateExpiry, 60000);
 
-    // API helper that injects session header
-    async function api(url, opts = {}) {
-      const headers = { 'x-session-id': SESSION_ID, ...opts.headers };
-      const res = await fetch(url, { ...opts, headers });
-      if (res.status === 401) {
-        document.getElementById('expired-overlay').classList.add('show');
-        throw new Error('Session expired');
+      fetch("/api/access/check", { headers: { "x-session-id": SID } })
+        .then((r) => r.json())
+        .then((d) => {
+          if (!d.valid) {
+            localStorage.clear();
+            window.location.href = "/";
+          }
+        })
+        .catch(() => {});
+
+      document.getElementById("sn-label").textContent = GNAME;
+
+      function updateExpiry() {
+        const rem = EXP - Date.now();
+        if (rem <= 0) {
+          document.getElementById("expired-overlay").classList.add("show");
+          return;
+        }
+        const h = Math.floor(rem / 3600000),
+          m = Math.floor((rem % 3600000) / 60000);
+        document.getElementById("se-label").textContent =
+          h > 0 ? `in ${h}h ${m}m` : `in ${m}m`;
       }
-      return res;
-    }
+      updateExpiry();
+      setInterval(updateExpiry, 60000);
 
-    // ── State ─────────────────────────────────────────────────────────
-    let debounceTimer, addedCount = 0, recentTracks = [], queuedUris = new Set(), progressTimer = null;
-
-    // ── Init ──────────────────────────────────────────────────────────
-    loadProfile();
-    loadNowPlaying();
-    loadQueueList();
-    setInterval(loadNowPlaying, 10000);
-    setInterval(loadQueueList, 15000);
-
-    // ── Profile ───────────────────────────────────────────────────────
-    async function loadProfile() {
-      try {
-        const data = await fetch('/api/me').then(r => r.json());
-        if (data.image) document.getElementById('profile-pic').innerHTML = `<img src="${data.image}" alt="" />`;
-      } catch {}
-    }
-
-    // ── Now Playing ───────────────────────────────────────────────────
-    async function loadNowPlaying() {
-      try {
-        const data = await fetch('/api/now-playing').then(r => r.json());
-        renderNowPlaying(data);
-      } catch {}
-    }
-
-    function renderNowPlaying(data) {
-      const card = document.getElementById('now-playing-card');
-      clearInterval(progressTimer);
-      if (!data.name) {
-        card.className = '';
-        card.innerHTML = `<div id="now-playing-empty">Nothing playing right now</div>`;
-        return;
-      }
-      const pct = data.duration_ms ? (data.progress_ms / data.duration_ms) * 100 : 0;
-      card.className = data.playing ? 'active' : '';
-      card.innerHTML = `
-        <div class="now-art">
-          ${data.image ? `<img src="${data.image}" alt="" />` : ''}
-          ${data.playing ? `<div class="playing-bars"><span></span><span></span><span></span></div>` : ''}
-        </div>
-        <div class="now-info">
-          <div class="now-name">${esc(data.name)}</div>
-          <div class="now-meta">${esc(data.artist)} · ${esc(data.album)}</div>
-          <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:${pct}%"></div></div>
-        </div>
-        ${!data.playing ? `<span class="now-paused-badge">Paused</span>` : ''}
-      `;
-      if (data.playing && data.duration_ms) {
-        let elapsed = data.progress_ms;
-        progressTimer = setInterval(() => {
-          elapsed += 1000;
-          const fill = document.getElementById('progress-fill');
-          if (fill) fill.style.width = Math.min((elapsed / data.duration_ms) * 100, 100) + '%';
-        }, 1000);
-      }
-    }
-
-    // ── Queue List ────────────────────────────────────────────────────
-    async function loadQueueList() {
-      const btn = document.getElementById('refresh-queue-btn');
-      btn.classList.add('spinning');
-      try {
-        const data = await fetch('/api/queue-list').then(r => r.json());
-        renderQueueList(data.tracks || []);
-      } catch {}
-      setTimeout(() => btn.classList.remove('spinning'), 400);
-    }
-
-    function renderQueueList(tracks) {
-      const list = document.getElementById('queue-list');
-      if (!tracks.length) { list.innerHTML = `<div id="queue-empty">Queue is empty</div>`; return; }
-      list.innerHTML = tracks.map((t, i) => `
-        <div class="queue-item">
-          <span class="queue-num">${i + 1}</span>
-          <div class="queue-art">${t.image ? `<img src="${t.image}" alt="" />` : ''}</div>
-          <div class="queue-info">
-            <div class="queue-name">${esc(t.name)}</div>
-            <div class="queue-artist">${esc(t.artist)}</div>
-          </div>
-          <span class="queue-dur">${fmt(t.duration_ms)}</span>
-        </div>
-      `).join('');
-    }
-
-    document.getElementById('refresh-queue-btn').addEventListener('click', () => { loadQueueList(); loadNowPlaying(); });
-
-    // ── Search ────────────────────────────────────────────────────────
-    const input = document.getElementById('search-input');
-    const results = document.getElementById('results');
-    const hint = document.getElementById('hint');
-    const spinner = document.getElementById('spinner');
-
-    input.addEventListener('input', () => {
-      const q = input.value.trim();
-      clearTimeout(debounceTimer);
-      if (!q) { results.innerHTML = ''; results.appendChild(hint); spinner.style.display = 'none'; return; }
-      spinner.style.display = 'block';
-      debounceTimer = setTimeout(() => search(q), 350);
-    });
-
-    async function search(q) {
-      try {
-        const res = await api(`/api/search?q=${encodeURIComponent(q)}`);
-        const data = await res.json();
-        renderTracks(data.tracks || []);
-      } catch (e) {
-        if (e.message !== 'Session expired') results.innerHTML = `<div class="hint"><p>Search failed.</p></div>`;
-      } finally { spinner.style.display = 'none'; }
-    }
-
-    function renderTracks(tracks) {
-      results.innerHTML = '';
-      if (!tracks.length) { results.innerHTML = `<div class="hint"><p>No results found</p></div>`; return; }
-      tracks.forEach(track => {
-        const isQueued = queuedUris.has(track.uri);
-        const el = document.createElement('button');
-        el.className = `track${isQueued ? ' queued' : ''}`;
-        el.innerHTML = `
-          <div class="track-art">
-            ${track.image ? `<img src="${track.image}" alt="" loading="lazy" />`
-              : `<div class="track-art-placeholder"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3z"/></svg></div>`}
-          </div>
-          <div class="track-info">
-            <div class="track-name">${esc(track.name)}</div>
-            <div class="track-meta">${esc(track.artist)} · ${esc(track.album)}</div>
-          </div>
-          <span class="track-dur">${fmt(track.duration_ms)}</span>
-          <div class="add-btn">
-            ${isQueued
-              ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
-              : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`}
-          </div>
-        `;
-        if (!isQueued) el.addEventListener('click', () => addToQueue(track, el));
-        results.appendChild(el);
-      });
-    }
-
-    async function addToQueue(track, el) {
-      const btn = el.querySelector('.add-btn');
-      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 0.7s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`;
-      try {
-        const res = await api('/api/queue', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uri: track.uri }),
+      async function apiFetch(url, opts = {}) {
+        const res = await fetch(url, {
+          ...opts,
+          headers: { "x-session-id": SID, ...(opts.headers || {}) },
         });
-        const data = await res.json();
-        if (res.ok) {
-          queuedUris.add(track.uri);
-          el.classList.add('queued');
-          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
-          addedCount++;
-          document.getElementById('queued-count').textContent = addedCount;
-          document.getElementById('queued-badge').style.display = 'block';
-          recentTracks.unshift(track);
-          if (recentTracks.length > 5) recentTracks.pop();
-          renderRecent();
-          showToast(`"${track.name}" added to queue`, 'success');
-          setTimeout(loadQueueList, 1500);
-        } else {
-          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
-          showToast(data.error || 'Failed to add track', 'error');
+        if (res.status === 401) {
+          document.getElementById("expired-overlay").classList.add("show");
+          throw new Error("expired");
         }
-      } catch (e) {
-        if (e.message !== 'Session expired') {
-          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
-          showToast('Network error', 'error');
+        return res;
+      }
+
+      // ── Settings ───────────────────────────────────────────────────────────
+      let appSettings = {
+        maxSongsPerPerson: 0,
+        cooldownSeconds: 0,
+        queuingPaused: false,
+      };
+      let addedCount = 0;
+      let cooldownTimer = null;
+      let cooldownEnd = 0;
+
+      async function loadSettings() {
+        try {
+          appSettings = await fetch("/api/settings/public").then((r) =>
+            r.json(),
+          );
+          document.getElementById("paused-banner").style.display =
+            appSettings.queuingPaused ? "block" : "none";
+        } catch {}
+      }
+
+      function startCooldown(seconds) {
+        cooldownEnd = Date.now() + seconds * 1000;
+        clearInterval(cooldownTimer);
+        document.getElementById("cooldown-wrap").style.display = "block";
+        function tick() {
+          const rem = cooldownEnd - Date.now();
+          if (rem <= 0) {
+            document.getElementById("cooldown-wrap").style.display = "none";
+            clearInterval(cooldownTimer);
+            return;
+          }
+          document.getElementById("cd-label").textContent =
+            Math.ceil(rem / 1000) + "s";
+          document.getElementById("cd-fill").style.width =
+            Math.min(100, (rem / (appSettings.cooldownSeconds * 1000)) * 100) +
+            "%";
+        }
+        tick();
+        cooldownTimer = setInterval(tick, 500);
+      }
+
+      // ── Tabs ───────────────────────────────────────────────────────────────
+      function switchTab(name) {
+        document.querySelectorAll(".tab").forEach((t, i) => {
+          t.classList.toggle(
+            "active",
+            ["search", "history", "top"][i] === name,
+          );
+        });
+        document
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => p.classList.remove("active"));
+        document.getElementById("tab-" + name).classList.add("active");
+        if (name === "history") loadHistory();
+        if (name === "top") loadLeaderboard();
+      }
+
+      // ── Profile ────────────────────────────────────────────────────────────
+      async function loadProfile() {
+        try {
+          const d = await fetch("/api/me").then((r) => r.json());
+          if (d.image)
+            document.getElementById("pfp").innerHTML =
+              `<img src="${d.image}" alt=""/>`;
+        } catch {}
+      }
+
+      // ── Now Playing ────────────────────────────────────────────────────────
+      let progressTimer = null;
+      let reactedEmoji = null;
+      let currentUri = null;
+
+      async function loadNowPlaying() {
+        try {
+          const d = await fetch("/api/now-playing").then((r) => r.json());
+          if (d.uri && d.uri !== currentUri) {
+            reactedEmoji = null;
+            currentUri = d.uri;
+          }
+          renderNP(d);
+        } catch {}
+      }
+
+      function renderNP(d) {
+        const card = document.getElementById("np-card");
+        const rxDiv = document.getElementById("reactions");
+        clearInterval(progressTimer);
+        if (!d.name) {
+          card.className = "";
+          card.innerHTML = `<div id="np-empty">Nothing playing right now</div>`;
+          rxDiv.style.display = "none";
+          return;
+        }
+        const pct = d.duration_ms ? (d.progress_ms / d.duration_ms) * 100 : 0;
+        card.className = d.playing ? "active" : "";
+        card.innerHTML = `
+    <div class="np-art">
+      ${d.image ? `<img src="${d.image}" alt=""/>` : ""}
+      ${d.playing ? `<div class="bars"><span></span><span></span><span></span></div>` : ""}
+    </div>
+    <div class="np-info">
+      <div class="np-name">${esc(d.name)}</div>
+      <div class="np-meta">${esc(d.artist)} · ${esc(d.album)}</div>
+      <div class="prog-bar"><div class="prog-fill" id="pf" style="width:${pct}%"></div></div>
+    </div>
+    ${!d.playing ? `<span class="np-paused">Paused</span>` : ""}
+  `;
+        if (d.playing && d.duration_ms) {
+          let el = d.progress_ms;
+          progressTimer = setInterval(() => {
+            el += 1000;
+            const f = document.getElementById("pf");
+            if (f)
+              f.style.width = Math.min((el / d.duration_ms) * 100, 100) + "%";
+          }, 1000);
+        }
+        // Reactions
+        rxDiv.style.display = "flex";
+        const rx = d.reactions || { "🔥": 0, "👍": 0, "💀": 0 };
+        rxDiv.innerHTML = ["🔥", "👍", "💀"]
+          .map(
+            (e) => `
+    <button class="react-btn${reactedEmoji === e ? " reacted" : ""}" onclick="sendReact('${d.uri}','${e}')">
+      ${e} <span class="react-count">${rx[e] || 0}</span>
+    </button>
+  `,
+          )
+          .join("");
+      }
+
+      async function sendReact(uri, emoji) {
+        try {
+          const d = await apiFetch("/api/react", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ uri, emoji }),
+          }).then((r) => r.json());
+          reactedEmoji = reactedEmoji === emoji ? null : emoji;
+          const rx = d.reactions;
+          document.getElementById("reactions").innerHTML = ["🔥", "👍", "💀"]
+            .map(
+              (e) => `
+      <button class="react-btn${reactedEmoji === e ? " reacted" : ""}" onclick="sendReact('${uri}','${e}')">
+        ${e} <span class="react-count">${rx[e] || 0}</span>
+      </button>
+    `,
+            )
+            .join("");
+        } catch {}
+      }
+
+      // ── Queue list ─────────────────────────────────────────────────────────
+      let myVotes = new Set();
+
+      async function loadQueue() {
+        const btn = document.getElementById("ref-btn");
+        btn.classList.add("spin");
+        try {
+          const d = await fetch("/api/queue-list").then((r) => r.json());
+          renderQueue(d.tracks || []);
+        } catch {}
+        setTimeout(() => btn.classList.remove("spin"), 400);
+      }
+
+      function renderQueue(tracks) {
+        const list = document.getElementById("q-list");
+        if (!tracks.length) {
+          list.innerHTML = `<div id="q-empty">Queue is empty</div>`;
+          return;
+        }
+        list.innerHTML = tracks
+          .map(
+            (t, i) => `
+    <div class="q-item">
+      <span class="q-num">${i + 1}</span>
+      <div class="q-art">${t.image ? `<img src="${t.image}" alt=""/>` : ""}</div>
+      <div class="q-info">
+        <div class="q-name">${esc(t.name)}</div>
+        <div class="q-sub">${esc(t.artist)}${t.queuedBy ? ` · <span class="q-by">by ${esc(t.queuedBy)}</span>` : ""}</div>
+      </div>
+      <span class="q-dur">${fmt(t.duration_ms)}</span>
+      <button class="vote-btn${myVotes.has(t.uri) ? " voted" : ""}" onclick="vote('${t.uri}',this)">
+        ▲ <span>${t.votes}</span>
+      </button>
+    </div>
+  `,
+          )
+          .join("");
+      }
+
+      document.getElementById("ref-btn").addEventListener("click", () => {
+        loadQueue();
+        loadNowPlaying();
+      });
+
+      async function vote(uri, btn) {
+        try {
+          const d = await apiFetch("/api/upvote", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ uri }),
+          }).then((r) => r.json());
+          if (d.voted) myVotes.add(uri);
+          else myVotes.delete(uri);
+          btn.className = `vote-btn${d.voted ? " voted" : ""}`;
+          btn.innerHTML = `▲ <span>${d.votes}</span>`;
+        } catch {}
+      }
+
+      // ── Search ─────────────────────────────────────────────────────────────
+      let debounce;
+      let queuedUris = new Set();
+
+      document.getElementById("s-input").addEventListener("input", (e) => {
+        clearTimeout(debounce);
+        const q = e.target.value.trim();
+        if (!q) {
+          resetResults();
+          return;
+        }
+        document.getElementById("spinner").style.display = "block";
+        debounce = setTimeout(() => doSearch(q), 350);
+      });
+
+      function resetResults() {
+        const r = document.getElementById("results");
+        r.innerHTML = "";
+        r.appendChild(document.getElementById("hint") || mkHint());
+        document.getElementById("spinner").style.display = "none";
+      }
+
+      function mkHint() {
+        const d = document.createElement("div");
+        d.className = "hint";
+        d.id = "hint";
+        d.innerHTML = `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><p>Type to search for a song</p>`;
+        return d;
+      }
+
+      async function doSearch(q) {
+        try {
+          const res = await apiFetch(`/api/search?q=${encodeURIComponent(q)}`);
+          const d = await res.json();
+          renderTracks(d.tracks || []);
+        } catch (e) {
+          if (e.message !== "expired")
+            document.getElementById("results").innerHTML =
+              `<div class="hint"><p>Search failed.</p></div>`;
+        } finally {
+          document.getElementById("spinner").style.display = "none";
         }
       }
-    }
 
-    function renderRecent() {
-      document.getElementById('recent-section').style.display = 'block';
-      document.getElementById('recent-list').innerHTML = recentTracks.map(t => `
-        <div class="recent-item">
-          <div class="recent-art">${t.image ? `<img src="${t.image}" alt="" />` : ''}</div>
-          <div class="recent-info">
-            <div class="recent-name">${esc(t.name)}</div>
-            <div class="recent-artist">${esc(t.artist)}</div>
-          </div>
-          <svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      function renderTracks(tracks) {
+        const r = document.getElementById("results");
+        r.innerHTML = "";
+        if (!tracks.length) {
+          r.innerHTML = `<div class="hint"><p>No results found</p></div>`;
+          return;
+        }
+        tracks.forEach((t) => {
+          const isQ = queuedUris.has(t.uri);
+          const el = document.createElement("button");
+          el.className = `track${isQ ? " queued" : ""}${t.blocked ? " blocked" : ""}`;
+          el.innerHTML = `
+      <div class="t-art">${t.image ? `<img src="${t.image}" alt="" loading="lazy"/>` : `<div class="t-placeholder"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3z"/></svg></div>`}</div>
+      <div class="t-info">
+        <div class="t-name">${esc(t.name)}</div>
+        <div class="t-meta">${esc(t.artist)} · ${esc(t.album)}</div>
+      </div>
+      ${t.blocked ? `<span class="blocked-tag">Blocked</span>` : t.alreadyQueued ? `<span class="already-tag">Queued</span>` : ""}
+      <span class="t-dur">${fmt(t.duration_ms)}</span>
+      <div class="add-btn">
+        ${
+          isQ || t.alreadyQueued
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
+            : t.blocked
+              ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+              : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`
+        }
+      </div>
+    `;
+          if (!t.blocked && !isQ && !t.alreadyQueued)
+            el.addEventListener("click", () => addTrack(t, el));
+          r.appendChild(el);
+        });
+      }
+
+      async function addTrack(track, el) {
+        if (appSettings.queuingPaused) {
+          showToast("Queueing is paused by the host", "warn");
+          return;
+        }
+        const btn = el.querySelector(".add-btn");
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .7s linear infinite"><circle cx="12" cy="12" r="10"/></svg>`;
+        try {
+          const res = await apiFetch("/api/queue", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              uri: track.uri,
+              name: track.name,
+              artist: track.artist,
+              image: track.image,
+            }),
+          });
+          const d = await res.json();
+          if (res.ok) {
+            queuedUris.add(track.uri);
+            el.classList.add("queued");
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+            addedCount++;
+            document.getElementById("qc").textContent = addedCount;
+            document.getElementById("queued-badge").style.display = "block";
+            showToast(`"${track.name}" added!`, "success");
+            if (appSettings.cooldownSeconds > 0)
+              startCooldown(appSettings.cooldownSeconds);
+            setTimeout(loadQueue, 1500);
+          } else {
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+            const isWarn = res.status === 403 || res.status === 429;
+            showToast(d.error || "Failed to add", isWarn ? "warn" : "error");
+            if (d.remainingSeconds) startCooldown(d.remainingSeconds);
+          }
+        } catch (e) {
+          if (e.message !== "expired") {
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+            showToast("Network error", "error");
+          }
+        }
+      }
+
+      // ── History ────────────────────────────────────────────────────────────
+      async function loadHistory() {
+        try {
+          const d = await fetch("/api/queue-history").then((r) => r.json());
+          const el = document.getElementById("history-list");
+          if (!d.history.length) {
+            el.innerHTML = `<div class="hint"><p>No songs played yet tonight</p></div>`;
+            return;
+          }
+          el.innerHTML = d.history
+            .map(
+              (t) => `
+      <div class="h-item">
+        <div class="h-art">${t.image ? `<img src="${t.image}" alt=""/>` : ""}</div>
+        <div class="h-info">
+          <div class="h-name">${esc(t.name)}</div>
+          <div class="h-sub">${esc(t.artist)}</div>
         </div>
-      `).join('');
-    }
+        <span class="h-time">${timeAgo(t.playedAt)}</span>
+      </div>
+    `,
+            )
+            .join("");
+        } catch {}
+      }
 
-    function showToast(msg, type = 'success') {
-      const toast = document.getElementById('toast');
-      document.getElementById('toast-text').textContent = msg;
-      toast.className = `show ${type}`;
-      clearTimeout(toast._t);
-      toast._t = setTimeout(() => { toast.className = ''; }, 2800);
-    }
+      // ── Leaderboard ────────────────────────────────────────────────────────
+      async function loadLeaderboard() {
+        try {
+          const d = await fetch("/api/most-requested").then((r) => r.json());
+          const el = document.getElementById("lb-list");
+          if (!d.tracks.length) {
+            el.innerHTML = `<div class="hint"><p>No songs requested yet</p></div>`;
+            return;
+          }
+          const medals = ["gold", "silver", "bronze"];
+          el.innerHTML = d.tracks
+            .map(
+              (t, i) => `
+      <div class="lb-item">
+        <span class="lb-rank${medals[i] ? " " + medals[i] : ""}">${i + 1}</span>
+        <div class="lb-art">${t.image ? `<img src="${t.image}" alt=""/>` : ""}</div>
+        <div class="lb-info">
+          <div class="lb-name">${esc(t.name)}</div>
+          <div class="lb-artist">${esc(t.artist)}</div>
+        </div>
+        <span class="lb-count">×${t.count}</span>
+      </div>
+    `,
+            )
+            .join("");
+        } catch {}
+      }
 
-    function esc(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
+      // ── Helpers ────────────────────────────────────────────────────────────
+      function showToast(msg, type = "success") {
+        const t = document.getElementById("toast");
+        document.getElementById("toast-text").textContent = msg;
+        t.className = `show ${type}`;
+        clearTimeout(t._t);
+        t._t = setTimeout(() => {
+          t.className = "";
+        }, 3000);
+      }
 
-    function fmt(ms) {
-      const s = Math.round(ms / 1000);
-      return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-    }
-  </script>
-</body>
+      function esc(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+      function fmt(ms) {
+        const s = Math.round(ms / 1000);
+        return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+      }
+      function timeAgo(ts) {
+        const m = Math.floor((Date.now() - ts) / 60000);
+        if (m < 1) return "just now";
+        if (m < 60) return `${m}m ago`;
+        return `${Math.floor(m / 60)}h ago`;
+      }
+
+      // ── Boot ───────────────────────────────────────────────────────────────
+      loadSettings();
+      loadProfile();
+      loadNowPlaying();
+      loadQueue();
+      setInterval(loadNowPlaying, 10000);
+      setInterval(loadQueue, 15000);
+      setInterval(loadSettings, 30000);
+    </script>
+  </body>
 </html>
