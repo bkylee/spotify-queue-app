@@ -2,3 +2,5 @@ node_modules/
 .env
 .azure/
 terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
