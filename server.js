@@ -256,10 +256,12 @@ let tokenStore = {
 let accessCode = generateNewCode();
 let guestSessions = {};
 let queuedThisSession = {};
+let userReactions = {};
 let reactions = {};
 let currentTrackUri = null;
 let lastPlayingUri = null;
 let queueHistory = [];
+let nowPlayingCache = null; // stores current track metadata for reaction lookups
 
 const EMOJIS = ["🔥", "👍", "💀"];
 
@@ -273,6 +275,7 @@ setInterval(() => {
   accessCode = generateNewCode();
   guestSessions = {};
   queuedThisSession = {};
+  userReactions = {};
   console.log(`🔄 Access code rotated: ${accessCode.code}`);
 }, CODE_VALIDITY_MS);
 
@@ -498,7 +501,7 @@ app.get("/api/now-playing", async (req, res) => {
     const t = response.data.item;
     const uri = t.uri;
     if (!reactions[uri]) reactions[uri] = { "🔥": 0, "👍": 0, "💀": 0 };
-    res.json({
+    const npData = {
       playing: response.data.is_playing,
       uri,
       name: t.name,
@@ -508,7 +511,9 @@ app.get("/api/now-playing", async (req, res) => {
       progress_ms: response.data.progress_ms,
       duration_ms: t.duration_ms,
       reactions: reactions[uri],
-    });
+    };
+    nowPlayingCache = npData; // cache for reaction lookups
+    res.json(npData);
   } catch {
     res.status(500).json({ error: "Could not fetch now playing" });
   }
@@ -623,11 +628,9 @@ app.post("/api/queue", requireGuest, async (req, res) => {
     settings.maxSongsPerPerson > 0 &&
     session.songsQueued >= settings.maxSongsPerPerson
   ) {
-    return res
-      .status(403)
-      .json({
-        error: `You've reached the limit of ${settings.maxSongsPerPerson} song${settings.maxSongsPerPerson !== 1 ? "s" : ""}.`,
-      });
+    return res.status(403).json({
+      error: `You've reached the limit of ${settings.maxSongsPerPerson} song${settings.maxSongsPerPerson !== 1 ? "s" : ""}.`,
+    });
   }
 
   if (settings.cooldownSeconds > 0 && session.lastQueuedAt) {
@@ -635,12 +638,10 @@ app.post("/api/queue", requireGuest, async (req, res) => {
     const cooldownMs = settings.cooldownSeconds * 1000;
     if (elapsed < cooldownMs) {
       const remaining = Math.ceil((cooldownMs - elapsed) / 1000);
-      return res
-        .status(429)
-        .json({
-          error: `Please wait ${remaining}s before queuing another song.`,
-          remainingSeconds: remaining,
-        });
+      return res.status(429).json({
+        error: `Please wait ${remaining}s before queuing another song.`,
+        remainingSeconds: remaining,
+      });
     }
   }
 
@@ -682,15 +683,64 @@ app.post("/api/queue", requireGuest, async (req, res) => {
 app.post("/api/react", requireGuest, (req, res) => {
   const { uri, emojiIndex } = req.body;
   const emoji = EMOJIS[emojiIndex];
+  const sessionId = req.headers["x-session-id"];
   if (!uri || !emoji)
     return res.status(400).json({ error: "Invalid reaction" });
-  if (!reactions[uri]) reactions[uri] = { "🔥": 0, "👍": 0, "💀": 0 };
-  reactions[uri][emoji]++;
 
+  if (!reactions[uri]) reactions[uri] = { "🔥": 0, "👍": 0, "💀": 0 };
+  if (!userReactions[sessionId]) userReactions[sessionId] = {};
+
+  const prevIndex = userReactions[sessionId][uri];
+  const prevEmoji = EMOJIS[prevIndex];
+
+  // If clicking same emoji, remove reaction (toggle off)
+  if (prevIndex === emojiIndex) {
+    reactions[uri][emoji] = Math.max(0, (reactions[uri][emoji] || 0) - 1);
+    delete userReactions[sessionId][uri];
+    if (reactionHistory[uri]) {
+      reactionHistory[uri][emoji] = Math.max(
+        0,
+        (reactionHistory[uri][emoji] || 0) - 1,
+      );
+      reactionHistory[uri].total = Math.max(
+        0,
+        (reactionHistory[uri].total || 0) - 1,
+      );
+      saveReactionEntry(uri);
+    }
+    return res.json({ reactions: reactions[uri], myReaction: null });
+  }
+
+  // If switching emoji, remove old one first
+  if (prevEmoji && prevIndex !== emojiIndex) {
+    reactions[uri][prevEmoji] = Math.max(
+      0,
+      (reactions[uri][prevEmoji] || 0) - 1,
+    );
+    if (reactionHistory[uri]) {
+      reactionHistory[uri][prevEmoji] = Math.max(
+        0,
+        (reactionHistory[uri][prevEmoji] || 0) - 1,
+      );
+      reactionHistory[uri].total = Math.max(
+        0,
+        (reactionHistory[uri].total || 0) - 1,
+      );
+    }
+  }
+
+  // Add new reaction
+  reactions[uri][emoji]++;
+  userReactions[sessionId][uri] = emojiIndex;
+
+  // Get track metadata
   const trackMeta = queuedThisSession[uri] || mostRequested[uri];
-  const trackName = trackMeta?.name || uri;
-  const artist = trackMeta?.artist || "";
-  const image = trackMeta?.image || null;
+  const nowPlayingMeta =
+    currentTrackUri === uri && nowPlayingCache ? nowPlayingCache : null;
+  const trackName = trackMeta?.name || nowPlayingMeta?.name || "";
+  const artist = trackMeta?.artist || nowPlayingMeta?.artist || "";
+  const image = trackMeta?.image || nowPlayingMeta?.image || null;
+
   if (!reactionHistory[uri])
     reactionHistory[uri] = {
       uri,
@@ -702,11 +752,17 @@ app.post("/api/react", requireGuest, (req, res) => {
       "💀": 0,
       total: 0,
     };
+  if (!reactionHistory[uri].name && trackName) {
+    reactionHistory[uri].name = trackName;
+    reactionHistory[uri].artist = artist;
+    reactionHistory[uri].image = image;
+  }
+
   reactionHistory[uri][emoji]++;
   reactionHistory[uri].total = (reactionHistory[uri].total || 0) + 1;
-  saveReactionEntry(uri); // persist async
+  saveReactionEntry(uri);
 
-  res.json({ reactions: reactions[uri] });
+  res.json({ reactions: reactions[uri], myReaction: emojiIndex });
 });
 
 // ─── Admin API ────────────────────────────────────────────────────────

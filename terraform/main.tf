@@ -66,7 +66,7 @@ resource "azurerm_linux_web_app" "main" {
     app_command_line = "node server.js"
 
     application_stack {
-      node_version = "18-lts"
+      node_version = "20-lts"
     }
   }
 

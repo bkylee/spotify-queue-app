@@ -1,7 +1,6 @@
 app_name              = "spotify-queue-neon-fox"
 resource_group_name   = "learn-7d094fbd-dd2b-4679-a3a1-20f48cfb12a2"
 location              = "canadacentral"
-sku_name              = "F1"
 storage_account_name  = "brianq7x3k"
 
 spotify_client_id     = "3704fb45d4d64a8d886cb1820d2ff6e0"

@@ -1273,9 +1273,21 @@
 
       <!-- Stats -->
       <div class="page" id="page-stats">
+        <div class="hdr">
+          <p class="ct" style="margin: 0">Tonight's Stats</p>
+          <button class="bsm bo" onclick="loadMostRequested()">
+            ↺ Refresh
+          </button>
+        </div>
         <div class="card">
           <p class="ct">Most Requested Tonight</p>
           <div id="mr-list"><div class="empty">No requests yet</div></div>
+        </div>
+        <div class="card">
+          <p class="ct">Reaction Leaderboard</p>
+          <div id="rx-admin-list">
+            <div class="empty">No reactions yet</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1340,8 +1352,9 @@
         loadSettings();
         loadBlocklist();
         setInterval(loadNowPlaying, 10000);
-        setInterval(loadGuests, 15000);
+        setInterval(loadGuests, 10000);
         setInterval(updateExpiry, 60000);
+        setInterval(loadMostRequested, 15000);
       }
 
       // ── Nav ───────────────────────────────────────────────────────────────
@@ -1713,6 +1726,34 @@
           <div class="mr-artist">${esc(t.artist)}</div>
         </div>
         <span class="mr-count">×${t.count}</span>
+      </div>
+    `,
+            )
+            .join("");
+        } catch {}
+
+        // Also load reaction stats
+        try {
+          const d = await fetch("/api/reaction-stats").then((r) => r.json());
+          const el = document.getElementById("rx-admin-list");
+          if (!d.stats?.length) {
+            el.innerHTML = `<div class="empty">No reactions yet</div>`;
+            return;
+          }
+          el.innerHTML = d.stats
+            .map(
+              (s) => `
+      <div class="mr-item">
+        <div class="mr-art">${s.image ? `<img src="${s.image}" alt=""/>` : ""}</div>
+        <div class="mr-info">
+          <div class="mr-name">${esc(s.name)}</div>
+          <div class="mr-artist">${esc(s.artist)}</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-shrink:0;font-size:.82rem">
+          <span>🔥 ${s["🔥"] || 0}</span>
+          <span>👍 ${s["👍"] || 0}</span>
+          <span>💀 ${s["💀"] || 0}</span>
+        </div>
       </div>
     `,
             )
