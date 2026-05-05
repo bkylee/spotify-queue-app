@@ -12,6 +12,42 @@ provider "azurerm" {
   features {}
 }
 
+# ── Storage Account ───────────────────────────────────────────────────
+
+resource "azurerm_storage_account" "main" {
+  name                     = var.storage_account_name
+  resource_group_name      = var.resource_group_name
+  location                 = "canadacentral"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  min_tls_version          = "TLS1_2"
+}
+
+resource "azurerm_storage_table" "settings" {
+  name                 = "settings"
+  storage_account_name = azurerm_storage_account.main.name
+}
+
+resource "azurerm_storage_table" "blocklist" {
+  name                 = "blocklist"
+  storage_account_name = azurerm_storage_account.main.name
+}
+
+resource "azurerm_storage_table" "reactions" {
+  name                 = "reactions"
+  storage_account_name = azurerm_storage_account.main.name
+}
+
+resource "azurerm_storage_table" "leaderboard" {
+  name                 = "leaderboard"
+  storage_account_name = azurerm_storage_account.main.name
+}
+
+resource "azurerm_storage_table" "activitylog" {
+  name                 = "activitylog"
+  storage_account_name = azurerm_storage_account.main.name
+}
+
 # ── Web App ───────────────────────────────────────────────────────────
 # Resource group and App Service Plan are managed outside of Terraform
 # (the plan name contains dots which the azurerm provider rejects).
@@ -42,6 +78,7 @@ resource "azurerm_linux_web_app" "main" {
     ADMIN_PASSWORD                 = var.admin_password
     NODE_ENV                       = "production"
     SCM_DO_BUILD_DURING_DEPLOYMENT = "True"
+    AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.main.primary_connection_string
   }
 
   logs {

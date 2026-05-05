@@ -1193,12 +1193,17 @@
         rxDiv.innerHTML = ["🔥", "👍", "💀"]
           .map(
             (e) => `
-    <button class="react-btn${reactedEmoji === e ? " reacted" : ""}" onclick="sendReact('${d.uri}','${e}')">
+    <button class="react-btn${reactedEmoji === e ? " reacted" : ""}" data-uri="${esc(d.uri)}" data-emoji="${e}">
       ${e} <span class="react-count">${rx[e] || 0}</span>
     </button>
   `,
           )
           .join("");
+        rxDiv.querySelectorAll(".react-btn").forEach((btn) => {
+          btn.addEventListener("click", () =>
+            sendReact(btn.dataset.uri, btn.dataset.emoji),
+          );
+        });
       }
 
       async function sendReact(uri, emoji) {
@@ -1210,15 +1215,21 @@
           }).then((r) => r.json());
           reactedEmoji = reactedEmoji === emoji ? null : emoji;
           const rx = d.reactions;
-          document.getElementById("reactions").innerHTML = ["🔥", "👍", "💀"]
+          const rxDiv2 = document.getElementById("reactions");
+          rxDiv2.innerHTML = ["🔥", "👍", "💀"]
             .map(
               (e) => `
-      <button class="react-btn${reactedEmoji === e ? " reacted" : ""}" onclick="sendReact('${uri}','${e}')">
+      <button class="react-btn${reactedEmoji === e ? " reacted" : ""}" data-uri="${esc(uri)}" data-emoji="${e}">
         ${e} <span class="react-count">${rx[e] || 0}</span>
       </button>
     `,
             )
             .join("");
+          rxDiv2.querySelectorAll(".react-btn").forEach((btn) => {
+            btn.addEventListener("click", () =>
+              sendReact(btn.dataset.uri, btn.dataset.emoji),
+            );
+          });
         } catch {}
       }
 
@@ -1252,13 +1263,16 @@
         <div class="q-sub">${esc(t.artist)}${t.queuedBy ? ` · <span class="q-by">by ${esc(t.queuedBy)}</span>` : ""}</div>
       </div>
       <span class="q-dur">${fmt(t.duration_ms)}</span>
-      <button class="vote-btn${myVotes.has(t.uri) ? " voted" : ""}" onclick="vote('${t.uri}',this)">
-        ▲ <span>${t.votes}</span>
+      <button class="vote-btn${myVotes.has(t.uri) ? " voted" : ""}" data-uri="${esc(t.uri)}">
+        ▲ <span>${t.votes || 0}</span>
       </button>
     </div>
   `,
           )
           .join("");
+        list.querySelectorAll(".vote-btn").forEach((btn) => {
+          btn.addEventListener("click", () => vote(btn.dataset.uri, btn));
+        });
       }
 
       document.getElementById("ref-btn").addEventListener("click", () => {

@@ -1,3 +1,14 @@
+variable "storage_account_name" {
+  description = "Globally unique name for the Azure Storage Account (3-24 chars, lowercase letters and numbers only)"
+  type        = string
+  default     = "spotifyqueuestore"
+}
+
+variable "subscription_id" {
+  description = "Your Azure subscription ID"
+  type        = string
+  default     = "ea0c6b3f-d251-437e-b139-58f867a732e2"
+}
 
 variable "app_name" {
   description = "The globally unique name for the Azure Web App"
@@ -14,7 +25,7 @@ variable "resource_group_name" {
 variable "location" {
   description = "Azure region to deploy to"
   type        = string
-  default     = "eastus"
+  default     = "canadacentral"
 }
 
 variable "sku_name" {
