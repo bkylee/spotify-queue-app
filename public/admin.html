@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Brian's Queue</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1DB954; --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e;
+      --surface3: #282828; --border: rgba(255,255,255,0.08); --border-hover: rgba(255,255,255,0.15);
+      --text: #fff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.3);
+      --red: #ff5555; --radius: 12px; --radius-sm: 8px;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+    body::before { content: ''; position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse, rgba(29,185,84,0.1) 0%, transparent 70%);
+      pointer-events: none; }
+
+    /* Login screen */
+    #login-screen { position: fixed; inset: 0; background: var(--bg); display: flex;
+      align-items: center; justify-content: center; z-index: 50; }
+    .login-card { width: 100%; max-width: 340px; padding: 1rem; text-align: center; }
+    .login-card h2 { font-family: 'Syne', sans-serif; font-size: 1.6rem; margin-bottom: 0.4rem; }
+    .login-card p { color: var(--text-2); font-size: 0.88rem; margin-bottom: 2rem; }
+    .login-card input {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.85rem 1rem; font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; color: var(--text); outline: none; margin-bottom: 0.75rem;
+      transition: border-color 0.2s;
+    }
+    .login-card input:focus { border-color: var(--green); }
+    .login-card input::placeholder { color: var(--text-3); }
+    .btn-green { width: 100%; padding: 0.85rem; background: var(--green); color: #000;
+      border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+    .btn-green:hover { opacity: 0.88; }
+    .login-error { color: #ff7070; font-size: 0.83rem; margin-top: 0.6rem; display: none; }
+
+    /* Main layout */
+    .container { width: 100%; max-width: 680px; padding: 0 1rem 4rem; }
+
+    header { padding: 2.2rem 0 1.8rem; display: flex; align-items: center; justify-content: space-between; }
+    .header-title h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800;
+      letter-spacing: -0.03em; }
+    .header-title h1 span { color: var(--green); }
+    .header-title p { color: var(--text-2); font-size: 0.85rem; margin-top: 0.2rem; }
+    .logout-btn { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      color: var(--text-3); padding: 0.4rem 0.9rem; font-size: 0.8rem; cursor: pointer;
+      transition: border-color 0.15s, color 0.15s; }
+    .logout-btn:hover { border-color: var(--border-hover); color: var(--text-2); }
+
+    .section-label { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 0.7rem; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.2rem; }
+
+    /* Access code card */
+    .code-display { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+    .code-big { font-family: 'Courier New', monospace; font-size: 2.8rem; font-weight: 700;
+      letter-spacing: 0.2em; color: var(--green); }
+    .code-meta { flex: 1; min-width: 160px; }
+    .code-meta p { font-size: 0.83rem; color: var(--text-2); margin-bottom: 0.2rem; }
+    .code-meta strong { color: var(--text); }
+    .expiry-bar-wrap { margin-top: 0.6rem; }
+    .expiry-bar { height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+    .expiry-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 1s linear; }
+    .code-actions { display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
+    .btn-sm { padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.83rem;
+      font-family: 'DM Sans', sans-serif; cursor: pointer; font-weight: 500; border: none; transition: opacity 0.15s; }
+    .btn-outline { background: none; border: 1px solid var(--border-hover); color: var(--text-2); }
+    .btn-outline:hover { color: var(--text); border-color: var(--text-3); }
+    .btn-danger { background: rgba(255,85,85,0.12); border: 1px solid rgba(255,85,85,0.25); color: var(--red); }
+    .btn-danger:hover { background: rgba(255,85,85,0.2); }
+
+    /* QR code */
+    .qr-section { display: flex; align-items: flex-start; gap: 1.4rem; flex-wrap: wrap; }
+    .qr-box { background: #fff; border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .qr-box img { width: 140px; height: 140px; display: block; }
+    .qr-info { flex: 1; min-width: 180px; }
+    .qr-info p { font-size: 0.85rem; color: var(--text-2); margin-bottom: 0.8rem; line-height: 1.5; }
+    .app-url { font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--green);
+      background: var(--surface2); padding: 0.4rem 0.7rem; border-radius: 6px;
+      word-break: break-all; display: block; margin-bottom: 0.8rem; }
+
+    /* Now playing mini */
+    .now-mini { display: flex; align-items: center; gap: 10px; }
+    .now-mini-art { width: 46px; height: 46px; border-radius: 6px; background: var(--surface3); overflow: hidden; flex-shrink: 0; }
+    .now-mini-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .now-mini-info { flex: 1; min-width: 0; }
+    .now-mini-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .now-mini-meta { font-size: 0.8rem; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .playing-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%;
+      flex-shrink: 0; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+    /* Guests table */
+    .guests-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.7rem; }
+    .guest-count-badge { background: var(--surface3); border-radius: 100px; padding: 2px 10px;
+      font-size: 0.75rem; color: var(--text-2); }
+    #guest-list { display: flex; flex-direction: column; gap: 6px; }
+    .guest-row { display: flex; align-items: center; gap: 12px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+    .guest-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--surface3);
+      display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+      font-weight: 700; color: var(--green); flex-shrink: 0; text-transform: uppercase; }
+    .guest-info { flex: 1; min-width: 0; }
+    .guest-name { font-weight: 500; font-size: 0.9rem; }
+    .guest-meta { font-size: 0.75rem; color: var(--text-3); }
+    .guest-songs { font-size: 0.8rem; color: var(--text-2); flex-shrink: 0; margin-right: 8px; }
+    .remove-btn { background: none; border: 1px solid rgba(255,85,85,0.2); border-radius: 6px;
+      color: var(--red); padding: 4px 10px; font-size: 0.75rem; cursor: pointer;
+      transition: background 0.15s; flex-shrink: 0; }
+    .remove-btn:hover { background: rgba(255,85,85,0.1); }
+    #no-guests { color: var(--text-3); font-size: 0.85rem; text-align: center; padding: 1.5rem; }
+
+    .divider { height: 1px; background: var(--border); margin: 1.2rem 0; }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 100px;
+      padding: 0.6rem 1.2rem; font-size: 0.875rem; white-space: nowrap;
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 200; }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { border-color: rgba(29,185,84,0.4); color: var(--green); }
+    #toast.error { border-color: rgba(255,80,80,0.3); color: #ff7070; }
+
+    @media (max-width: 480px) {
+      .code-big { font-size: 2rem; }
+      .qr-section { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login screen -->
+  <div id="login-screen">
+    <div class="login-card">
+      <h2>🔒 Admin Access</h2>
+      <p>Enter your admin password to manage the queue</p>
+      <input type="password" id="admin-pw-input" placeholder="Admin password" />
+      <button class="btn-green" onclick="adminLogin()">Sign In</button>
+      <p class="login-error" id="login-error">Incorrect password</p>
+    </div>
+  </div>
+
+  <div class="container" id="main-content" style="display:none">
+    <header>
+      <div class="header-title">
+        <h1><span>Brian's</span> Queue — Admin</h1>
+        <p>Manage access and monitor guests</p>
+      </div>
+      <button class="logout-btn" onclick="adminLogout()">Log out</button>
+    </header>
+
+    <!-- Now Playing -->
+    <p class="section-label">Now playing</p>
+    <div class="card" id="now-playing-admin">
+      <p style="color:var(--text-3);font-size:0.85rem">Nothing playing right now</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Access Code -->
+    <p class="section-label">Access code</p>
+    <div class="card">
+      <div class="code-display">
+        <div class="code-big" id="code-display">——</div>
+        <div class="code-meta">
+          <p>Expires <strong id="code-expiry">—</strong></p>
+          <div class="expiry-bar-wrap">
+            <div style="font-size:0.72rem;color:var(--text-3)" id="expiry-remaining">—</div>
+            <div class="expiry-bar"><div class="expiry-fill" id="expiry-fill" style="width:100%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="code-actions">
+        <button class="btn-sm btn-outline" onclick="copyCode()">📋 Copy code</button>
+        <button class="btn-sm btn-outline" onclick="copyLink()">🔗 Copy link</button>
+        <button class="btn-sm btn-danger" onclick="rotateCode()">🔄 Rotate code & kick all</button>
+      </div>
+    </div>
+
+    <!-- QR Code -->
+    <p class="section-label">QR code for guests</p>
+    <div class="card">
+      <div class="qr-section">
+        <div class="qr-box"><img id="qr-img" src="" alt="QR Code" /></div>
+        <div class="qr-info">
+          <p>Guests scan this to open the app, then enter the access code above.</p>
+          <code class="app-url" id="app-url">—</code>
+          <button class="btn-sm btn-outline" onclick="downloadQR()">⬇ Download QR</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Guests -->
+    <div class="guests-header">
+      <p class="section-label" style="margin:0">Active guests</p>
+      <span class="guest-count-badge" id="guest-count">0 online</span>
+    </div>
+    <div id="guest-list"><div id="no-guests">No guests yet</div></div>
+
+    <div style="margin-top:0.8rem;display:flex;gap:0.6rem">
+      <button class="btn-sm btn-outline" onclick="loadGuests()">↺ Refresh</button>
+    </div>
+  </div>
+
+  <div id="toast"><span id="toast-text"></span></div>
+
+  <script>
+    let adminPassword = '';
+    let codeData = null;
+    let appUrl = '';
+
+    // ── Auth ──────────────────────────────────────────────────────────
+    document.getElementById('admin-pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
+
+    async function adminLogin() {
+      const pw = document.getElementById('admin-pw-input').value;
+      const res = await fetch('/api/admin/code', { headers: { 'x-admin-password': pw } });
+      if (res.ok) {
+        adminPassword = pw;
+        sessionStorage.setItem('adminPw', pw);
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        init();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    }
+
+    function adminLogout() {
+      sessionStorage.removeItem('adminPw');
+      adminPassword = '';
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('main-content').style.display = 'none';
+    }
+
+    // Auto-login if password saved in session
+    const savedPw = sessionStorage.getItem('adminPw');
+    if (savedPw) {
+      document.getElementById('admin-pw-input').value = savedPw;
+      adminLogin();
+    }
+
+    function adminFetch(url, opts = {}) {
+      return fetch(url, { ...opts, headers: { 'x-admin-password': adminPassword, ...opts.headers } });
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────
+    function init() {
+      loadCodeAndQR();
+      loadNowPlaying();
+      loadGuests();
+      setInterval(loadNowPlaying, 10000);
+      setInterval(loadGuests, 15000);
+      setInterval(updateExpiryDisplay, 30000);
+    }
+
+    // ── Code & QR ─────────────────────────────────────────────────────
+    async function loadCodeAndQR() {
+      try {
+        const data = await adminFetch('/api/admin/code').then(r => r.json());
+        codeData = data;
+        appUrl = data.appUrl;
+        document.getElementById('code-display').textContent = data.code;
+        document.getElementById('app-url').textContent = data.appUrl;
+        document.getElementById('qr-img').src = data.qrDataUrl;
+        updateExpiryDisplay();
+      } catch { showToast('Failed to load code', 'error'); }
+    }
+
+    function updateExpiryDisplay() {
+      if (!codeData) return;
+      const remaining = codeData.expiresAt - Date.now();
+      const total = codeData.expiresAt - codeData.createdAt;
+      const pct = Math.max(0, Math.min(100, (remaining / total) * 100));
+      document.getElementById('expiry-fill').style.width = pct + '%';
+
+      const h = Math.floor(remaining / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      document.getElementById('expiry-remaining').textContent = remaining > 0 ? `${h}h ${m}m remaining` : 'Expired';
+      document.getElementById('code-expiry').textContent = new Date(codeData.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function rotateCode() {
+      if (!confirm('Rotate the code? This will kick all current guests immediately.')) return;
+      try {
+        const data = await adminFetch('/api/admin/rotate-code', { method: 'POST' }).then(r => r.json());
+        codeData = { ...codeData, code: data.code, expiresAt: data.expiresAt, createdAt: Date.now() };
+        document.getElementById('code-display').textContent = data.code;
+        updateExpiryDisplay();
+        loadGuests();
+        showToast('Code rotated — all guests removed', 'success');
+      } catch { showToast('Failed to rotate code', 'error'); }
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(codeData?.code || '');
+      showToast('Code copied!', 'success');
+    }
+
+    function copyLink() {
+      navigator.clipboard.writeText(appUrl);
+      showToast('Link copied!', 'success');
+    }
+
+    function downloadQR() {
+      const a = document.createElement('a');
+      a.href = document.getElementById('qr-img').src;
+      a.download = 'queue-qr-code.png';
+      a.click();
+    }
+
+    // ── Now Playing ───────────────────────────────────────────────────
+    async function loadNowPlaying() {
+      try {
+        const data = await fetch('/api/now-playing').then(r => r.json());
+        const el = document.getElementById('now-playing-admin');
+        if (!data.name) {
+          el.innerHTML = `<p style="color:var(--text-3);font-size:0.85rem">Nothing playing right now</p>`;
+          return;
+        }
+        el.innerHTML = `
+          <div class="now-mini">
+            <div class="now-mini-art">${data.image ? `<img src="${data.image}" alt="" />` : ''}</div>
+            <div class="now-mini-info">
+              <div class="now-mini-name">${esc(data.name)}</div>
+              <div class="now-mini-meta">${esc(data.artist)} · ${esc(data.album)}</div>
+            </div>
+            ${data.playing ? `<div class="playing-dot"></div>` : `<span style="font-size:0.75rem;color:var(--text-3)">Paused</span>`}
+          </div>
+        `;
+      } catch {}
+    }
+
+    // ── Guests ────────────────────────────────────────────────────────
+    async function loadGuests() {
+      try {
+        const data = await adminFetch('/api/admin/guests').then(r => r.json());
+        const guests = data.guests || [];
+        document.getElementById('guest-count').textContent = `${guests.length} online`;
+        const list = document.getElementById('guest-list');
+        if (!guests.length) { list.innerHTML = `<div id="no-guests">No guests yet</div>`; return; }
+        list.innerHTML = guests.map(g => `
+          <div class="guest-row" id="guest-${g.sessionId}">
+            <div class="guest-avatar">${g.name.charAt(0)}</div>
+            <div class="guest-info">
+              <div class="guest-name">${esc(g.name)}</div>
+              <div class="guest-meta">Joined ${timeAgo(g.grantedAt)} · expires ${new Date(g.expiresAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+            </div>
+            <span class="guest-songs">${g.songsQueued} song${g.songsQueued !== 1 ? 's' : ''}</span>
+            <button class="remove-btn" onclick="removeGuest('${g.sessionId}', '${esc(g.name)}')">Remove</button>
+          </div>
+        `).join('');
+      } catch { showToast('Failed to load guests', 'error'); }
+    }
+
+    async function removeGuest(sessionId, name) {
+      try {
+        await adminFetch(`/api/admin/guests/${sessionId}`, { method: 'DELETE' });
+        document.getElementById(`guest-${sessionId}`)?.remove();
+        showToast(`${name} removed`, 'success');
+        loadGuests();
+      } catch { showToast('Failed to remove guest', 'error'); }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────
+    function timeAgo(ts) {
+      const diff = Date.now() - ts;
+      const m = Math.floor(diff / 60000);
+      if (m < 1) return 'just now';
+      if (m < 60) return `${m}m ago`;
+      return `${Math.floor(m/60)}h ${m%60}m ago`;
+    }
+
+    function esc(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').textContent = msg;
+      toast.className = `show ${type}`;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { toast.className = ''; }, 2800);
+    }
+  </script>
+</body>
+</html>

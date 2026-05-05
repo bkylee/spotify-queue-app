@@ -1,0 +1,13 @@
+# Copy this to terraform.tfvars and fill in your real values
+# terraform.tfvars is gitignored — never commit it
+
+app_name            = "spotify-queue-neon-fox"
+resource_group_name = "spotify-queue-rg"
+location            = "canadacentral"
+sku_name            = "F1"
+
+# Sensitive — set in terraform.tfvars (never commit that file)
+spotify_client_id     = "your_client_id_here"
+spotify_client_secret = "your_client_secret_here"
+spotify_refresh_token = ""
+admin_password        = "change_me"
