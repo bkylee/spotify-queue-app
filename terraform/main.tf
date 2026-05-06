@@ -17,7 +17,7 @@ provider "azurerm" {
 resource "azurerm_storage_account" "main" {
   name                     = var.storage_account_name
   resource_group_name      = var.resource_group_name
-  location                 = "canadacentral"
+  location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   min_tls_version          = "TLS1_2"
@@ -49,19 +49,17 @@ resource "azurerm_storage_table" "activitylog" {
 }
 
 # ── Web App ───────────────────────────────────────────────────────────
-# Resource group and App Service Plan are managed outside of Terraform
-# (the plan name contains dots which the azurerm provider rejects).
 
 resource "azurerm_linux_web_app" "main" {
   name                    = var.app_name
   resource_group_name     = var.resource_group_name
-  location                = "canadacentral"
-  service_plan_id         = "/subscriptions/ea0c6b3f-d251-437e-b139-58f867a732e2/resourceGroups/learn-7d094fbd-dd2b-4679-a3a1-20f48cfb12a2/providers/Microsoft.Web/serverFarms/brian.ky.lee_asp_6113"
+  location                = var.location
+  service_plan_id         = var.service_plan_id
   https_only              = true
   client_affinity_enabled = true
 
   site_config {
-    always_on        = false
+    always_on        = var.sku_name == "B1" ? false : true
     http2_enabled    = true
     app_command_line = "node server.js"
 
@@ -71,13 +69,14 @@ resource "azurerm_linux_web_app" "main" {
   }
 
   app_settings = {
-    SPOTIFY_CLIENT_ID              = var.spotify_client_id
-    SPOTIFY_CLIENT_SECRET          = var.spotify_client_secret
-    REDIRECT_URI                   = "https://${var.app_name}.azurewebsites.net/callback"
-    SPOTIFY_REFRESH_TOKEN          = var.spotify_refresh_token
-    ADMIN_PASSWORD                 = var.admin_password
-    NODE_ENV                       = "production"
-    SCM_DO_BUILD_DURING_DEPLOYMENT = "True"
+    SPOTIFY_CLIENT_ID               = var.spotify_client_id
+    SPOTIFY_CLIENT_SECRET           = var.spotify_client_secret
+    REDIRECT_URI                    = "https://${var.app_name}.azurewebsites.net/callback"
+    SPOTIFY_REFRESH_TOKEN           = var.spotify_refresh_token
+    ADMIN_PASSWORD                  = var.admin_password
+    HOST_NAME                       = var.host_name
+    NODE_ENV                        = "production"
+    SCM_DO_BUILD_DURING_DEPLOYMENT  = "True"
     AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.main.primary_connection_string
   }
 

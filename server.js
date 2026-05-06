@@ -17,7 +17,7 @@ const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI =
   process.env.REDIRECT_URI || "http://localhost:3000/callback";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
-const CODE_VALIDITY_MS = 8 * 60 * 60 * 1000;
+const HOST_NAME = process.env.HOST_NAME || "Your Host";
 const STORAGE_CONN = process.env.AZURE_STORAGE_CONNECTION_STRING;
 
 // ─── Azure Table Storage ─────────────────────────────────────────────
@@ -87,6 +87,8 @@ let settings = {
   maxSongsPerPerson: 0,
   cooldownSeconds: 120,
   queuingPaused: false,
+  codeRotationHours: 8,
+  sessionDurationHours: 8,
 };
 
 async function loadSettings() {
@@ -95,7 +97,11 @@ async function loadSettings() {
     settings.maxSongsPerPerson = entity.maxSongsPerPerson ?? 0;
     settings.cooldownSeconds = entity.cooldownSeconds ?? 120;
     settings.queuingPaused = entity.queuingPaused ?? false;
+    settings.codeRotationHours = entity.codeRotationHours ?? 8;
+    settings.sessionDurationHours = entity.sessionDurationHours ?? 8;
     console.log("✅ Settings loaded from Table Storage");
+    // Reschedule rotation if loaded value differs from default
+    scheduleCodeRotation();
   }
 }
 
@@ -106,6 +112,8 @@ async function saveSettings() {
     maxSongsPerPerson: settings.maxSongsPerPerson,
     cooldownSeconds: settings.cooldownSeconds,
     queuingPaused: settings.queuingPaused,
+    codeRotationHours: settings.codeRotationHours,
+    sessionDurationHours: settings.sessionDurationHours,
   });
 }
 
@@ -254,6 +262,7 @@ let tokenStore = {
 };
 
 let accessCode = generateNewCode();
+scheduleCodeRotation();
 let guestSessions = {};
 let queuedThisSession = {};
 let userReactions = {};
@@ -265,19 +274,32 @@ let nowPlayingCache = null; // stores current track metadata for reaction lookup
 
 const EMOJIS = ["🔥", "👍", "💀"];
 
+function getCodeValidityMs() {
+  return settings.codeRotationHours * 60 * 60 * 1000;
+}
+
+function getSessionDurationMs() {
+  return settings.sessionDurationHours * 60 * 60 * 1000;
+}
+
 function generateNewCode() {
   const code = crypto.randomBytes(3).toString("hex").toUpperCase();
   const now = Date.now();
-  return { code, createdAt: now, expiresAt: now + CODE_VALIDITY_MS };
+  return { code, createdAt: now, expiresAt: now + getCodeValidityMs() };
 }
 
-setInterval(() => {
-  accessCode = generateNewCode();
-  guestSessions = {};
-  queuedThisSession = {};
-  userReactions = {};
-  console.log(`🔄 Access code rotated: ${accessCode.code}`);
-}, CODE_VALIDITY_MS);
+let rotationTimer = null;
+
+function scheduleCodeRotation() {
+  if (rotationTimer) clearInterval(rotationTimer);
+  rotationTimer = setInterval(() => {
+    accessCode = generateNewCode();
+    guestSessions = {};
+    queuedThisSession = {};
+    userReactions = {};
+    console.log(`🔄 Access code rotated: ${accessCode.code}`);
+  }, getCodeValidityMs());
+}
 
 function isValidSession(sessionId) {
   const session = guestSessions[sessionId];
@@ -447,16 +469,20 @@ app.post("/api/access/verify", (req, res) => {
       .json({ error: "Invalid access code. Check with your host." });
   }
   const sessionId = crypto.randomBytes(16).toString("hex");
+  const sessionExpiry = Math.min(
+    accessCode.expiresAt,
+    Date.now() + getSessionDurationMs(),
+  );
   guestSessions[sessionId] = {
     name: name.trim(),
     grantedAt: Date.now(),
-    expiresAt: accessCode.expiresAt,
+    expiresAt: sessionExpiry,
     songsQueued: 0,
     lastQueuedAt: 0,
     sessionId,
   };
   logActivity(name.trim(), "joined");
-  res.json({ sessionId, expiresAt: accessCode.expiresAt, name: name.trim() });
+  res.json({ sessionId, expiresAt: sessionExpiry, name: name.trim() });
 });
 
 app.get("/api/access/check", (req, res) => {
@@ -474,6 +500,10 @@ app.get("/api/status", (req, res) => {
     authorized: !!(tokenStore.access_token || tokenStore.refresh_token),
     codeExpiresAt: accessCode.expiresAt,
   });
+});
+
+app.get("/api/host-name", (req, res) => {
+  res.json({ hostName: HOST_NAME });
 });
 
 app.get("/api/me", async (req, res) => {
@@ -816,12 +846,31 @@ app.delete("/api/admin/guests/:sessionId", requireAdmin, (req, res) => {
 app.get("/api/admin/settings", requireAdmin, (req, res) => res.json(settings));
 
 app.patch("/api/admin/settings", requireAdmin, async (req, res) => {
-  const { maxSongsPerPerson, cooldownSeconds, queuingPaused } = req.body;
+  const {
+    maxSongsPerPerson,
+    cooldownSeconds,
+    queuingPaused,
+    codeRotationHours,
+    sessionDurationHours,
+  } = req.body;
   if (maxSongsPerPerson !== undefined)
     settings.maxSongsPerPerson = Math.max(0, parseInt(maxSongsPerPerson) || 0);
   if (cooldownSeconds !== undefined)
     settings.cooldownSeconds = Math.max(0, parseInt(cooldownSeconds) || 0);
   if (queuingPaused !== undefined) settings.queuingPaused = !!queuingPaused;
+  if (codeRotationHours !== undefined) {
+    settings.codeRotationHours = Math.max(
+      1,
+      Math.min(24, parseInt(codeRotationHours) || 8),
+    );
+    scheduleCodeRotation(); // restart timer with new interval
+  }
+  if (sessionDurationHours !== undefined) {
+    settings.sessionDurationHours = Math.max(
+      1,
+      Math.min(24, parseInt(sessionDurationHours) || 8),
+    );
+  }
   await saveSettings();
   logActivity("Admin", "updated settings");
   res.json(settings);
