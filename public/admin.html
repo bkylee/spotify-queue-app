@@ -1,1789 +1,790 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>Admin — Brian's Queue</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      :root {
-        --green: #1db954;
-        --bg: #0a0a0a;
-        --s: #141414;
-        --s2: #1e1e1e;
-        --s3: #282828;
-        --b: rgba(255, 255, 255, 0.08);
-        --bh: rgba(255, 255, 255, 0.15);
-        --text: #fff;
-        --t2: rgba(255, 255, 255, 0.6);
-        --t3: rgba(255, 255, 255, 0.3);
-        --red: #ff5555;
-        --yellow: #ffcc55;
-        --r: 12px;
-        --rs: 8px;
-      }
-      body {
-        font-family: "DM Sans", sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        min-height: 100vh;
-      }
-      body::before {
-        content: "";
-        position: fixed;
-        top: -150px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 700px;
-        height: 400px;
-        background: radial-gradient(
-          ellipse,
-          rgba(29, 185, 84, 0.08) 0%,
-          transparent 70%
-        );
-        pointer-events: none;
-      }
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Admin — Brian's Queue</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --green:#1DB954;--bg:#0a0a0a;--s:#141414;--s2:#1e1e1e;--s3:#282828;
+      --b:rgba(255,255,255,0.08);--bh:rgba(255,255,255,0.15);
+      --text:#fff;--t2:rgba(255,255,255,0.6);--t3:rgba(255,255,255,0.3);
+      --red:#ff5555;--yellow:#ffcc55;--r:12px;--rs:8px;
+    }
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    body::before{content:'';position:fixed;top:-150px;left:50%;transform:translateX(-50%);width:700px;height:400px;background:radial-gradient(ellipse,rgba(29,185,84,.08) 0%,transparent 70%);pointer-events:none}
 
-      /* Login */
-      #login {
-        position: fixed;
-        inset: 0;
-        background: var(--bg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 50;
-      }
-      .lc {
-        width: 100%;
-        max-width: 340px;
-        padding: 1rem;
-        text-align: center;
-      }
-      .lc h2 {
-        font-family: "Syne", sans-serif;
-        font-size: 1.6rem;
-        margin-bottom: 0.4rem;
-      }
-      .lc p {
-        color: var(--t2);
-        font-size: 0.88rem;
-        margin-bottom: 1.8rem;
-      }
-      .lc input {
-        width: 100%;
-        background: var(--s);
-        border: 1px solid var(--b);
-        border-radius: var(--r);
-        padding: 0.85rem 1rem;
-        font-family: "DM Sans", sans-serif;
-        font-size: 1rem;
-        color: var(--text);
-        outline: none;
-        margin-bottom: 0.75rem;
-        transition: border-color 0.2s;
-      }
-      .lc input:focus {
-        border-color: var(--green);
-      }
-      .lc input::placeholder {
-        color: var(--t3);
-      }
-      .btn-green {
-        width: 100%;
-        padding: 0.85rem;
-        background: var(--green);
-        color: #000;
-        border: none;
-        border-radius: var(--r);
-        font-family: "DM Sans", sans-serif;
-        font-size: 1rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: opacity 0.15s;
-      }
-      .btn-green:hover {
-        opacity: 0.88;
-      }
-      .lerr {
-        color: #ff7070;
-        font-size: 0.83rem;
-        margin-top: 0.5rem;
-        display: none;
-      }
+    /* Login */
+    #login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:50}
+    .lc{width:100%;max-width:340px;padding:1rem;text-align:center}
+    .lc h2{font-family:'Syne',sans-serif;font-size:1.6rem;margin-bottom:.4rem}
+    .lc p{color:var(--t2);font-size:.88rem;margin-bottom:1.8rem}
+    .lc input{width:100%;background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:.85rem 1rem;font-family:'DM Sans',sans-serif;font-size:1rem;color:var(--text);outline:none;margin-bottom:.75rem;transition:border-color .2s}
+    .lc input:focus{border-color:var(--green)}
+    .lc input::placeholder{color:var(--t3)}
+    .btn-green{width:100%;padding:.85rem;background:var(--green);color:#000;border:none;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .15s}
+    .btn-green:hover{opacity:.88}
+    .lerr{color:#ff7070;font-size:.83rem;margin-top:.5rem;display:none}
 
-      /* App shell */
-      #app {
-        display: none;
-      }
-      .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid var(--b);
-        position: sticky;
-        top: 0;
-        background: rgba(10, 10, 10, 0.95);
-        backdrop-filter: blur(10px);
-        z-index: 10;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-      .tb-left {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      .tb-left h1 {
-        font-family: "Syne", sans-serif;
-        font-size: 1.25rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-      }
-      .tb-left h1 span {
-        color: var(--green);
-      }
-      .np-pill {
-        display: none;
-        align-items: center;
-        gap: 7px;
-        background: var(--s);
-        border: 1px solid var(--b);
-        border-radius: 100px;
-        padding: 4px 12px 4px 4px;
-      }
-      .np-pill-art {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        background: var(--s3);
-        overflow: hidden;
-        flex-shrink: 0;
-      }
-      .np-pill-art img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-      .np-pill-name {
-        font-size: 0.76rem;
-        font-weight: 500;
-        max-width: 150px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .dot {
-        width: 6px;
-        height: 6px;
-        background: var(--green);
-        border-radius: 50%;
-        flex-shrink: 0;
-        animation: pulse 1.5s ease-in-out infinite;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 0.5;
-          transform: scale(0.8);
-        }
-      }
-      .tb-right {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .bsm {
-        padding: 0.4rem 0.85rem;
-        border-radius: var(--rs);
-        font-size: 0.79rem;
-        font-family: "DM Sans", sans-serif;
-        cursor: pointer;
-        font-weight: 500;
-        transition:
-          opacity 0.15s,
-          background 0.15s;
-        border: none;
-      }
-      .bo {
-        background: none;
-        border: 1px solid var(--bh) !important;
-        color: var(--t2);
-      }
-      .bo:hover {
-        color: var(--text);
-      }
-      .bd {
-        background: rgba(255, 85, 85, 0.12);
-        border: 1px solid rgba(255, 85, 85, 0.25) !important;
-        color: var(--red);
-      }
-      .bd:hover {
-        background: rgba(255, 85, 85, 0.2);
-      }
-      .bw {
-        background: rgba(255, 204, 85, 0.1);
-        border: 1px solid rgba(255, 204, 85, 0.25) !important;
-        color: var(--yellow);
-      }
-      .bw:hover {
-        background: rgba(255, 204, 85, 0.18);
-      }
-      #pause-btn.paused {
-        background: rgba(29, 185, 84, 0.12);
-        border-color: rgba(29, 185, 84, 0.3) !important;
-        color: var(--green);
-      }
+    /* App shell */
+    #app{display:none}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--b);position:sticky;top:0;background:rgba(10,10,10,.95);backdrop-filter:blur(10px);z-index:10;gap:1rem;flex-wrap:wrap}
+    .tb-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .tb-left h1{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;letter-spacing:-.02em}
+    .tb-left h1 span{color:var(--green)}
+    .np-pill{display:none;align-items:center;gap:7px;background:var(--s);border:1px solid var(--b);border-radius:100px;padding:4px 12px 4px 4px}
+    .np-pill-art{width:26px;height:26px;border-radius:50%;background:var(--s3);overflow:hidden;flex-shrink:0}
+    .np-pill-art img{width:100%;height:100%;object-fit:cover;display:block}
+    .np-pill-name{font-size:.76rem;font-weight:500;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .dot{width:6px;height:6px;background:var(--green);border-radius:50%;flex-shrink:0;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+    .tb-right{display:flex;align-items:center;gap:6px}
+    .bsm{padding:.4rem .85rem;border-radius:var(--rs);font-size:.79rem;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500;transition:opacity .15s,background .15s;border:none}
+    .bo{background:none;border:1px solid var(--bh) !important;color:var(--t2)}
+    .bo:hover{color:var(--text)}
+    .bd{background:rgba(255,85,85,.12);border:1px solid rgba(255,85,85,.25) !important;color:var(--red)}
+    .bd:hover{background:rgba(255,85,85,.2)}
+    .bw{background:rgba(255,204,85,.1);border:1px solid rgba(255,204,85,.25) !important;color:var(--yellow)}
+    .bw:hover{background:rgba(255,204,85,.18)}
+    #pause-btn.paused{background:rgba(29,185,84,.12);border-color:rgba(29,185,84,.3) !important;color:var(--green)}
 
-      /* Nav */
-      .nav {
-        display: flex;
-        gap: 2px;
-        padding: 0.7rem 1.5rem 0.3rem;
-        border-bottom: 1px solid var(--b);
-        overflow-x: auto;
-        scrollbar-width: none;
-      }
-      .nav::-webkit-scrollbar {
-        display: none;
-      }
-      .nt {
-        padding: 0.45rem 0.95rem;
-        border-radius: var(--rs);
-        font-size: 0.82rem;
-        font-weight: 500;
-        cursor: pointer;
-        color: var(--t2);
-        border: none;
-        background: none;
-        white-space: nowrap;
-        transition:
-          background 0.15s,
-          color 0.15s;
-      }
-      .nt.active {
-        background: var(--s);
-        color: var(--text);
-      }
+    /* Nav */
+    .nav{display:flex;gap:2px;padding:.7rem 1.5rem .3rem;border-bottom:1px solid var(--b);overflow-x:auto;scrollbar-width:none}
+    .nav::-webkit-scrollbar{display:none}
+    .nt{padding:.45rem .95rem;border-radius:var(--rs);font-size:.82rem;font-weight:500;cursor:pointer;color:var(--t2);border:none;background:none;white-space:nowrap;transition:background .15s,color .15s}
+    .nt.active{background:var(--s);color:var(--text)}
 
-      /* Pages */
-      .page {
-        display: none;
-        padding: 1.2rem 1.5rem 5rem;
-        max-width: 900px;
-      }
-      .page.active {
-        display: block;
-      }
+    /* Pages */
+    .page{display:none;padding:1.2rem 1.5rem 5rem;max-width:900px}
+    .page.active{display:block}
 
-      /* Pause banner */
-      #pause-banner {
-        display: none;
-        background: rgba(255, 204, 85, 0.08);
-        border: 1px solid rgba(255, 204, 85, 0.2);
-        border-radius: var(--rs);
-        padding: 0.6rem 1rem;
-        margin-bottom: 1rem;
-        text-align: center;
-        font-size: 0.82rem;
-        color: var(--yellow);
-      }
+    /* Pause banner */
+    #pause-banner{display:none;background:rgba(255,204,85,.08);border:1px solid rgba(255,204,85,.2);border-radius:var(--rs);padding:.6rem 1rem;margin-bottom:1rem;text-align:center;font-size:.82rem;color:var(--yellow)}
 
-      /* Cards */
-      .card {
-        background: var(--s);
-        border: 1px solid var(--b);
-        border-radius: var(--r);
-        padding: 1.1rem;
-        margin-bottom: 1rem;
-      }
-      .ct {
-        font-size: 0.67rem;
-        font-weight: 500;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--t3);
-        margin-bottom: 0.8rem;
-      }
-      .g2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-      }
-      @media (max-width: 580px) {
-        .g2 {
-          grid-template-columns: 1fr;
-        }
-      }
+    /* Cards */
+    .card{background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:1.1rem;margin-bottom:1rem}
+    .ct{font-size:.67rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:.8rem}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    @media(max-width:580px){.g2{grid-template-columns:1fr}}
 
-      /* Code */
-      .code-big {
-        font-family: "Courier New", monospace;
-        font-size: 2.5rem;
-        font-weight: 700;
-        letter-spacing: 0.2em;
-        color: var(--green);
-      }
-      .code-row {
-        display: flex;
-        align-items: center;
-        gap: 1.2rem;
-        flex-wrap: wrap;
-      }
-      .cm p {
-        font-size: 0.81rem;
-        color: var(--t2);
-        margin-bottom: 0.15rem;
-      }
-      .cm strong {
-        color: var(--text);
-      }
-      .eb {
-        height: 4px;
-        background: var(--s3);
-        border-radius: 2px;
-        overflow: hidden;
-        margin-top: 4px;
-      }
-      .ef {
-        height: 100%;
-        background: var(--green);
-        border-radius: 2px;
-        transition: width 30s linear;
-      }
-      .er {
-        font-size: 0.71rem;
-        color: var(--t3);
-        margin-top: 3px;
-      }
-      .ca {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin-top: 0.9rem;
-      }
+    /* Code */
+    .code-big{font-family:'Courier New',monospace;font-size:2.5rem;font-weight:700;letter-spacing:.2em;color:var(--green)}
+    .code-row{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap}
+    .cm p{font-size:.81rem;color:var(--t2);margin-bottom:.15rem}
+    .cm strong{color:var(--text)}
+    .eb{height:4px;background:var(--s3);border-radius:2px;overflow:hidden;margin-top:4px}
+    .ef{height:100%;background:var(--green);border-radius:2px;transition:width 30s linear}
+    .er{font-size:.71rem;color:var(--t3);margin-top:3px}
+    .ca{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.9rem}
 
-      /* QR */
-      .qr-row {
-        display: flex;
-        gap: 1.2rem;
-        align-items: flex-start;
-        flex-wrap: wrap;
-      }
-      .qr-box {
-        background: #fff;
-        border-radius: 10px;
-        padding: 8px;
-        flex-shrink: 0;
-      }
-      .qr-box img {
-        width: 130px;
-        height: 130px;
-        display: block;
-      }
-      .qi p {
-        font-size: 0.82rem;
-        color: var(--t2);
-        line-height: 1.5;
-        margin-bottom: 0.6rem;
-      }
-      .app-url {
-        font-family: "Courier New", monospace;
-        font-size: 0.77rem;
-        color: var(--green);
-        background: var(--s2);
-        padding: 0.35rem 0.7rem;
-        border-radius: 6px;
-        word-break: break-all;
-        display: block;
-        margin-bottom: 0.6rem;
-      }
+    /* QR */
+    .qr-row{display:flex;gap:1.2rem;align-items:flex-start;flex-wrap:wrap}
+    .qr-box{background:#fff;border-radius:10px;padding:8px;flex-shrink:0}
+    .qr-box img{width:130px;height:130px;display:block}
+    .qi p{font-size:.82rem;color:var(--t2);line-height:1.5;margin-bottom:.6rem}
+    .app-url{font-family:'Courier New',monospace;font-size:.77rem;color:var(--green);background:var(--s2);padding:.35rem .7rem;border-radius:6px;word-break:break-all;display:block;margin-bottom:.6rem}
 
-      /* Stats */
-      .stat-big {
-        font-size: 2.4rem;
-        font-weight: 700;
-        color: var(--green);
-        text-align: center;
-        line-height: 1;
-      }
-      .stat-label {
-        font-size: 0.75rem;
-        color: var(--t3);
-        text-align: center;
-        margin-top: 0.3rem;
-      }
+    /* Stats */
+    .stat-big{font-size:2.4rem;font-weight:700;color:var(--green);text-align:center;line-height:1}
+    .stat-label{font-size:.75rem;color:var(--t3);text-align:center;margin-top:.3rem}
 
-      /* Now playing full */
-      .np-full-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .np-full-art {
-        width: 56px;
-        height: 56px;
-        border-radius: 8px;
-        background: var(--s3);
-        overflow: hidden;
-        flex-shrink: 0;
-        position: relative;
-      }
-      .np-full-art img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-      .bars {
-        position: absolute;
-        bottom: 4px;
-        right: 4px;
-        display: flex;
-        align-items: flex-end;
-        gap: 2px;
-        height: 12px;
-      }
-      .bars span {
-        width: 3px;
-        background: var(--green);
-        border-radius: 2px;
-        animation: bar 1s ease-in-out infinite;
-      }
-      .bars span:nth-child(1) {
-        animation-delay: 0s;
-        height: 6px;
-      }
-      .bars span:nth-child(2) {
-        animation-delay: 0.2s;
-        height: 10px;
-      }
-      .bars span:nth-child(3) {
-        animation-delay: 0.4s;
-        height: 7px;
-      }
-      @keyframes bar {
-        0%,
-        100% {
-          transform: scaleY(0.4);
-        }
-        50% {
-          transform: scaleY(1);
-        }
-      }
-      .np-full-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .np-fn {
-        font-weight: 500;
-        font-size: 0.95rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .np-fm {
-        font-size: 0.8rem;
-        color: var(--t2);
-        margin-top: 2px;
-      }
-      .pb {
-        height: 3px;
-        background: var(--s3);
-        border-radius: 2px;
-        margin-top: 8px;
-        overflow: hidden;
-      }
-      .pf {
-        height: 100%;
-        background: var(--green);
-        border-radius: 2px;
-        transition: width 1s linear;
-      }
-      .np-paused-tag {
-        font-size: 0.68rem;
-        color: var(--t3);
-        background: var(--s3);
-        border-radius: 4px;
-        padding: 2px 6px;
-        flex-shrink: 0;
-      }
-      .rx-row {
-        display: flex;
-        gap: 7px;
-        margin-top: 10px;
-        flex-wrap: wrap;
-      }
-      .rx-btn {
-        background: var(--s3);
-        border: 1px solid var(--b);
-        border-radius: 100px;
-        padding: 4px 12px;
-        font-size: 0.84rem;
-        cursor: default;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        color: var(--text);
-      }
-      .rx-count {
-        font-size: 0.77rem;
-        color: var(--t2);
-      }
+    /* Now playing full */
+    .np-full-row{display:flex;align-items:center;gap:12px}
+    .np-full-art{width:56px;height:56px;border-radius:8px;background:var(--s3);overflow:hidden;flex-shrink:0;position:relative}
+    .np-full-art img{width:100%;height:100%;object-fit:cover;display:block}
+    .bars{position:absolute;bottom:4px;right:4px;display:flex;align-items:flex-end;gap:2px;height:12px}
+    .bars span{width:3px;background:var(--green);border-radius:2px;animation:bar 1s ease-in-out infinite}
+    .bars span:nth-child(1){animation-delay:0s;height:6px}
+    .bars span:nth-child(2){animation-delay:.2s;height:10px}
+    .bars span:nth-child(3){animation-delay:.4s;height:7px}
+    @keyframes bar{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
+    .np-full-info{flex:1;min-width:0}
+    .np-fn{font-weight:500;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .np-fm{font-size:.8rem;color:var(--t2);margin-top:2px}
+    .pb{height:3px;background:var(--s3);border-radius:2px;margin-top:8px;overflow:hidden}
+    .pf{height:100%;background:var(--green);border-radius:2px;transition:width 1s linear}
+    .np-paused-tag{font-size:.68rem;color:var(--t3);background:var(--s3);border-radius:4px;padding:2px 6px;flex-shrink:0}
+    .rx-row{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+    .rx-btn{background:var(--s3);border:1px solid var(--b);border-radius:100px;padding:4px 12px;font-size:.84rem;cursor:default;display:flex;align-items:center;gap:5px;color:var(--text)}
+    .rx-count{font-size:.77rem;color:var(--t2)}
 
-      /* Guests */
-      .g-hdr {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.8rem;
-      }
-      .gc-badge {
-        background: var(--s3);
-        border-radius: 100px;
-        padding: 2px 10px;
-        font-size: 0.74rem;
-        color: var(--t2);
-      }
-      #guest-list {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-      .gr {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: var(--s2);
-        border: 1px solid var(--b);
-        border-radius: var(--rs);
-        padding: 9px 12px;
-      }
-      .gav {
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        background: var(--s3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: var(--green);
-        flex-shrink: 0;
-        text-transform: uppercase;
-      }
-      .gi {
-        flex: 1;
-        min-width: 0;
-      }
-      .gn {
-        font-weight: 500;
-        font-size: 0.88rem;
-      }
-      .gm {
-        font-size: 0.73rem;
-        color: var(--t3);
-      }
-      .gs {
-        font-size: 0.78rem;
-        color: var(--t2);
-        flex-shrink: 0;
-        margin-right: 6px;
-      }
-      .rm-btn {
-        background: none;
-        border: 1px solid rgba(255, 85, 85, 0.2);
-        border-radius: 6px;
-        color: var(--red);
-        padding: 3px 9px;
-        font-size: 0.73rem;
-        cursor: pointer;
-        transition: background 0.15s;
-        flex-shrink: 0;
-      }
-      .rm-btn:hover {
-        background: rgba(255, 85, 85, 0.1);
-      }
+    /* Guests */
+    .g-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
+    .gc-badge{background:var(--s3);border-radius:100px;padding:2px 10px;font-size:.74rem;color:var(--t2)}
+    #guest-list{display:flex;flex-direction:column;gap:6px}
+    .gr{display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--b);border-radius:var(--rs);padding:9px 12px}
+    .gav{width:34px;height:34px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:var(--green);flex-shrink:0;text-transform:uppercase}
+    .gi{flex:1;min-width:0}
+    .gn{font-weight:500;font-size:.88rem}
+    .gm{font-size:.73rem;color:var(--t3)}
+    .gs{font-size:.78rem;color:var(--t2);flex-shrink:0;margin-right:6px}
+    .rm-btn{background:none;border:1px solid rgba(255,85,85,.2);border-radius:6px;color:var(--red);padding:3px 9px;font-size:.73rem;cursor:pointer;transition:background .15s;flex-shrink:0}
+    .rm-btn:hover{background:rgba(255,85,85,.1)}
 
-      /* Settings */
-      .sr {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.9rem 0;
-        border-bottom: 1px solid var(--b);
-        gap: 1rem;
-      }
-      .sr:last-child {
-        border-bottom: none;
-      }
-      .sl {
-        font-size: 0.9rem;
-        font-weight: 500;
-      }
-      .sd {
-        font-size: 0.77rem;
-        color: var(--t3);
-        margin-top: 2px;
-      }
-      .sc {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        flex-shrink: 0;
-      }
-      input[type="number"] {
-        background: var(--s2);
-        border: 1px solid var(--b);
-        border-radius: var(--rs);
-        padding: 0.4rem 0.6rem;
-        font-family: "DM Sans", sans-serif;
-        font-size: 0.9rem;
-        color: var(--text);
-        outline: none;
-        width: 72px;
-        text-align: center;
-        transition: border-color 0.2s;
-      }
-      input[type="number"]:focus {
-        border-color: var(--green);
-      }
-      .unit {
-        font-size: 0.77rem;
-        color: var(--t3);
-      }
-      .save-btn {
-        background: var(--green);
-        color: #000;
-        border: none;
-        border-radius: var(--rs);
-        padding: 0.42rem 0.95rem;
-        font-size: 0.81rem;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: "DM Sans", sans-serif;
-      }
-      .save-btn:hover {
-        opacity: 0.88;
-      }
-      .toggle {
-        position: relative;
-        width: 42px;
-        height: 24px;
-        flex-shrink: 0;
-      }
-      .toggle input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-        position: absolute;
-      }
-      .tsl {
-        position: absolute;
-        inset: 0;
-        background: var(--s3);
-        border-radius: 100px;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-      .tsl::before {
-        content: "";
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        left: 3px;
-        top: 3px;
-        background: #fff;
-        border-radius: 50%;
-        transition: transform 0.2s;
-      }
-      .toggle input:checked + .tsl {
-        background: var(--green);
-      }
-      .toggle input:checked + .tsl::before {
-        transform: translateX(18px);
-      }
+    /* Settings */
+    .sr{display:flex;align-items:center;justify-content:space-between;padding:.9rem 0;border-bottom:1px solid var(--b);gap:1rem}
+    .sr:last-child{border-bottom:none}
+    .sl{font-size:.9rem;font-weight:500}
+    .sd{font-size:.77rem;color:var(--t3);margin-top:2px}
+    .sc{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+    input[type=number]{background:var(--s2);border:1px solid var(--b);border-radius:var(--rs);padding:.4rem .6rem;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);outline:none;width:72px;text-align:center;transition:border-color .2s}
+    input[type=number]:focus{border-color:var(--green)}
+    .unit{font-size:.77rem;color:var(--t3)}
+    .save-btn{background:var(--green);color:#000;border:none;border-radius:var(--rs);padding:.42rem .95rem;font-size:.81rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+    .save-btn:hover{opacity:.88}
+    .toggle{position:relative;width:42px;height:24px;flex-shrink:0}
+    .toggle input{opacity:0;width:0;height:0;position:absolute}
+    .tsl{position:absolute;inset:0;background:var(--s3);border-radius:100px;cursor:pointer;transition:background .2s}
+    .tsl::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+    .toggle input:checked + .tsl{background:var(--green)}
+    .toggle input:checked + .tsl::before{transform:translateX(18px)}
 
-      /* Blocklist */
-      .sr-row {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 0.8rem;
-      }
-      .sr-row input {
-        flex: 1;
-        background: var(--s2);
-        border: 1px solid var(--b);
-        border-radius: var(--rs);
-        padding: 0.5rem 0.8rem;
-        font-family: "DM Sans", sans-serif;
-        font-size: 0.88rem;
-        color: var(--text);
-        outline: none;
-        transition: border-color 0.2s;
-      }
-      .sr-row input:focus {
-        border-color: var(--green);
-      }
-      .sr-row input::placeholder {
-        color: var(--t3);
-      }
-      .sg {
-        background: var(--green);
-        color: #000;
-        border: none;
-        border-radius: var(--rs);
-        padding: 0.5rem 1rem;
-        font-weight: 700;
-        cursor: pointer;
-        font-size: 0.84rem;
-        white-space: nowrap;
-      }
-      #blk-results {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        margin-bottom: 0.8rem;
-      }
-      .br-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: var(--s2);
-        border: 1px solid var(--b);
-        border-radius: var(--rs);
-        padding: 8px 10px;
-      }
-      .br-art {
-        width: 36px;
-        height: 36px;
-        border-radius: 4px;
-        background: var(--s3);
-        overflow: hidden;
-        flex-shrink: 0;
-      }
-      .br-art img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-      .br-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .br-name {
-        font-size: 0.84rem;
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .br-meta {
-        font-size: 0.73rem;
-        color: var(--t2);
-      }
-      .blk-btn {
-        background: rgba(255, 85, 85, 0.1);
-        border: 1px solid rgba(255, 85, 85, 0.2);
-        border-radius: 6px;
-        color: var(--red);
-        padding: 3px 9px;
-        font-size: 0.73rem;
-        cursor: pointer;
-        flex-shrink: 0;
-      }
-      .blk-btn:hover {
-        background: rgba(255, 85, 85, 0.2);
-      }
-      #bl-items {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .bl-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: var(--s2);
-        border: 1px solid rgba(255, 85, 85, 0.15);
-        border-radius: var(--rs);
-        padding: 8px 10px;
-      }
-      .bl-type {
-        font-size: 0.66rem;
-        color: var(--red);
-        background: rgba(255, 85, 85, 0.1);
-        border-radius: 4px;
-        padding: 1px 6px;
-        flex-shrink: 0;
-        text-transform: uppercase;
-      }
-      .bl-name {
-        flex: 1;
-        font-size: 0.84rem;
-        font-weight: 500;
-      }
-      .unblk {
-        background: none;
-        border: 1px solid var(--bh);
-        border-radius: 6px;
-        color: var(--t2);
-        padding: 3px 9px;
-        font-size: 0.73rem;
-        cursor: pointer;
-      }
-      .unblk:hover {
-        color: var(--text);
-      }
+    /* Blocklist */
+    .sr-row{display:flex;gap:.5rem;margin-bottom:.8rem}
+    .sr-row input{flex:1;background:var(--s2);border:1px solid var(--b);border-radius:var(--rs);padding:.5rem .8rem;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--text);outline:none;transition:border-color .2s}
+    .sr-row input:focus{border-color:var(--green)}
+    .sr-row input::placeholder{color:var(--t3)}
+    .sg{background:var(--green);color:#000;border:none;border-radius:var(--rs);padding:.5rem 1rem;font-weight:700;cursor:pointer;font-size:.84rem;white-space:nowrap}
+    #blk-results{display:flex;flex-direction:column;gap:4px;margin-bottom:.8rem}
+    .br-item{display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--b);border-radius:var(--rs);padding:8px 10px}
+    .br-art{width:36px;height:36px;border-radius:4px;background:var(--s3);overflow:hidden;flex-shrink:0}
+    .br-art img{width:100%;height:100%;object-fit:cover;display:block}
+    .br-info{flex:1;min-width:0}
+    .br-name{font-size:.84rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .br-meta{font-size:.73rem;color:var(--t2)}
+    .blk-btn{background:rgba(255,85,85,.1);border:1px solid rgba(255,85,85,.2);border-radius:6px;color:var(--red);padding:3px 9px;font-size:.73rem;cursor:pointer;flex-shrink:0}
+    .blk-btn:hover{background:rgba(255,85,85,.2)}
+    #bl-items{display:flex;flex-direction:column;gap:4px}
+    .bl-item{display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid rgba(255,85,85,.15);border-radius:var(--rs);padding:8px 10px}
+    .bl-type{font-size:.66rem;color:var(--red);background:rgba(255,85,85,.1);border-radius:4px;padding:1px 6px;flex-shrink:0;text-transform:uppercase}
+    .bl-name{flex:1;font-size:.84rem;font-weight:500}
+    .unblk{background:none;border:1px solid var(--bh);border-radius:6px;color:var(--t2);padding:3px 9px;font-size:.73rem;cursor:pointer}
+    .unblk:hover{color:var(--text)}
 
-      /* Activity */
-      #act-list {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .ai {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 7px 10px;
-        border-radius: var(--rs);
-        background: var(--s2);
-        border: 1px solid var(--b);
-      }
-      .ai-icon {
-        font-size: 0.9rem;
-        flex-shrink: 0;
-      }
-      .ai-who {
-        font-size: 0.82rem;
-        font-weight: 500;
-        flex-shrink: 0;
-        min-width: 80px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .ai-what {
-        flex: 1;
-        font-size: 0.8rem;
-        color: var(--t2);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .ai-track {
-        color: var(--text);
-      }
-      .ai-time {
-        font-size: 0.71rem;
-        color: var(--t3);
-        flex-shrink: 0;
-      }
+    /* Activity */
+    #act-list{display:flex;flex-direction:column;gap:4px}
+    .ai{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--rs);background:var(--s2);border:1px solid var(--b)}
+    .ai-icon{font-size:.9rem;flex-shrink:0}
+    .ai-who{font-size:.82rem;font-weight:500;flex-shrink:0;min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ai-what{flex:1;font-size:.8rem;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ai-track{color:var(--text)}
+    .ai-time{font-size:.71rem;color:var(--t3);flex-shrink:0}
 
-      /* Most requested */
-      #mr-list {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .mr-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 10px;
-        border-radius: var(--rs);
-        background: var(--s2);
-        border: 1px solid var(--b);
-      }
-      .mr-rank {
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: var(--t3);
-        width: 20px;
-        text-align: center;
-        flex-shrink: 0;
-      }
-      .mr-rank.gold {
-        color: #ffd700;
-      }
-      .mr-rank.silver {
-        color: #c0c0c0;
-      }
-      .mr-rank.bronze {
-        color: #cd7f32;
-      }
-      .mr-art {
-        width: 36px;
-        height: 36px;
-        border-radius: 4px;
-        background: var(--s3);
-        overflow: hidden;
-        flex-shrink: 0;
-      }
-      .mr-art img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-      .mr-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .mr-name {
-        font-size: 0.84rem;
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .mr-artist {
-        font-size: 0.73rem;
-        color: var(--t2);
-      }
-      .mr-count {
-        font-size: 0.82rem;
-        color: var(--green);
-        font-weight: 700;
-        flex-shrink: 0;
-      }
+    /* Most requested */
+    #mr-list{display:flex;flex-direction:column;gap:4px}
+    .mr-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--rs);background:var(--s2);border:1px solid var(--b)}
+    .mr-rank{font-size:.8rem;font-weight:700;color:var(--t3);width:20px;text-align:center;flex-shrink:0}
+    .mr-rank.gold{color:#FFD700}.mr-rank.silver{color:#C0C0C0}.mr-rank.bronze{color:#CD7F32}
+    .mr-art{width:36px;height:36px;border-radius:4px;background:var(--s3);overflow:hidden;flex-shrink:0}
+    .mr-art img{width:100%;height:100%;object-fit:cover;display:block}
+    .mr-info{flex:1;min-width:0}
+    .mr-name{font-size:.84rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mr-artist{font-size:.73rem;color:var(--t2)}
+    .mr-count{font-size:.82rem;color:var(--green);font-weight:700;flex-shrink:0}
 
-      /* Toast */
-      #toast {
-        position: fixed;
-        bottom: 2rem;
-        left: 50%;
-        transform: translateX(-50%) translateY(80px);
-        background: var(--s2);
-        border: 1px solid var(--bh);
-        border-radius: 100px;
-        padding: 0.6rem 1.2rem;
-        font-size: 0.875rem;
-        white-space: nowrap;
-        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        z-index: 200;
-      }
-      #toast.show {
-        transform: translateX(-50%) translateY(0);
-      }
-      #toast.success {
-        border-color: rgba(29, 185, 84, 0.4);
-        color: var(--green);
-      }
-      #toast.error {
-        border-color: rgba(255, 80, 80, 0.3);
-        color: #ff7070;
-      }
-      #toast.warn {
-        border-color: rgba(255, 204, 85, 0.3);
-        color: var(--yellow);
-      }
+    /* Toast */
+    #toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--s2);border:1px solid var(--bh);border-radius:100px;padding:.6rem 1.2rem;font-size:.875rem;white-space:nowrap;transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:200}
+    #toast.show{transform:translateX(-50%) translateY(0)}
+    #toast.success{border-color:rgba(29,185,84,.4);color:var(--green)}
+    #toast.error{border-color:rgba(255,80,80,.3);color:#ff7070}
+    #toast.warn{border-color:rgba(255,204,85,.3);color:var(--yellow)}
 
-      .empty {
-        color: var(--t3);
-        font-size: 0.84rem;
-        text-align: center;
-        padding: 1.5rem;
-      }
-      .hdr {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.8rem;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="login">
-      <div class="lc">
-        <h2>🔒 Admin</h2>
-        <p>Brian's Queue — Admin Dashboard</p>
-        <input type="password" id="pw" placeholder="Admin password" />
-        <button class="btn-green" onclick="doLogin()">Sign In</button>
-        <p class="lerr" id="lerr">Incorrect password</p>
+    .empty{color:var(--t3);font-size:.84rem;text-align:center;padding:1.5rem}
+    .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+<div id="login">
+  <div class="lc">
+    <h2>🔒 Admin</h2>
+    <p>Brian's Queue — Admin Dashboard</p>
+    <input type="password" id="pw" placeholder="Admin password"/>
+    <button class="btn-green" onclick="doLogin()">Sign In</button>
+    <p class="lerr" id="lerr">Incorrect password</p>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="tb-left">
+      <h1><span id='host-name-admin'>Queue</span></h1>
+      <div class="np-pill" id="np-pill">
+        <div class="np-pill-art" id="np-pill-art"></div>
+        <span class="np-pill-name" id="np-pill-name">—</span>
+        <div class="dot"></div>
       </div>
     </div>
+    <div class="tb-right">
+      <button class="bsm bw" id="pause-btn" onclick="togglePause()">⏸ Pause Queue</button>
+      <button class="bsm bo" onclick="doLogout()">Log out</button>
+    </div>
+  </div>
 
-    <div id="app">
-      <div class="topbar">
-        <div class="tb-left">
-          <h1><span>Brian's</span> Queue</h1>
-          <div class="np-pill" id="np-pill">
-            <div class="np-pill-art" id="np-pill-art"></div>
-            <span class="np-pill-name" id="np-pill-name">—</span>
-            <div class="dot"></div>
+  <div id="pause-banner">⏸ Queueing is currently paused — guests cannot add songs</div>
+
+  <div class="nav">
+    <button class="nt active" data-page="overview" onclick="showPage('overview',this)">Overview</button>
+    <button class="nt" data-page="guests" onclick="showPage('guests',this)">Guests</button>
+    <button class="nt" data-page="settings" onclick="showPage('settings',this)">Settings</button>
+    <button class="nt" data-page="blocklist" onclick="showPage('blocklist',this)">Blocklist</button>
+    <button class="nt" data-page="activity" onclick="showPage('activity',this)">Activity</button>
+    <button class="nt" data-page="stats" onclick="showPage('stats',this)">Stats</button>
+  </div>
+
+  <!-- Overview -->
+  <div class="page active" id="page-overview">
+    <div class="g2">
+      <div class="card">
+        <p class="ct">Access Code</p>
+        <div class="code-row">
+          <div class="code-big" id="code-display">——</div>
+          <div class="cm">
+            <p>Expires <strong id="code-exp">—</strong></p>
+            <div class="eb"><div class="ef" id="ef" style="width:100%"></div></div>
+            <p class="er" id="er">—</p>
           </div>
         </div>
-        <div class="tb-right">
-          <button class="bsm bw" id="pause-btn" onclick="togglePause()">
-            ⏸ Pause Queue
-          </button>
-          <button class="bsm bo" onclick="doLogout()">Log out</button>
+        <div class="ca">
+          <button class="bsm bo" onclick="copyCode()">📋 Copy code</button>
+          <button class="bsm bo" onclick="copyLink()">🔗 Copy link</button>
+          <button class="bsm bd" onclick="rotateCode()">🔄 Rotate & kick all</button>
         </div>
       </div>
-
-      <div id="pause-banner">
-        ⏸ Queueing is currently paused — guests cannot add songs
-      </div>
-
-      <div class="nav">
-        <button
-          class="nt active"
-          data-page="overview"
-          onclick="showPage('overview', this)"
-        >
-          Overview
-        </button>
-        <button
-          class="nt"
-          data-page="guests"
-          onclick="showPage('guests', this)"
-        >
-          Guests
-        </button>
-        <button
-          class="nt"
-          data-page="settings"
-          onclick="showPage('settings', this)"
-        >
-          Settings
-        </button>
-        <button
-          class="nt"
-          data-page="blocklist"
-          onclick="showPage('blocklist', this)"
-        >
-          Blocklist
-        </button>
-        <button
-          class="nt"
-          data-page="activity"
-          onclick="showPage('activity', this)"
-        >
-          Activity
-        </button>
-        <button class="nt" data-page="stats" onclick="showPage('stats', this)">
-          Stats
-        </button>
-      </div>
-
-      <!-- Overview -->
-      <div class="page active" id="page-overview">
-        <div class="g2">
-          <div class="card">
-            <p class="ct">Access Code</p>
-            <div class="code-row">
-              <div class="code-big" id="code-display">——</div>
-              <div class="cm">
-                <p>Expires <strong id="code-exp">—</strong></p>
-                <div class="eb">
-                  <div class="ef" id="ef" style="width: 100%"></div>
-                </div>
-                <p class="er" id="er">—</p>
-              </div>
-            </div>
-            <div class="ca">
-              <button class="bsm bo" onclick="copyCode()">📋 Copy code</button>
-              <button class="bsm bo" onclick="copyLink()">🔗 Copy link</button>
-              <button class="bsm bd" onclick="rotateCode()">
-                🔄 Rotate & kick all
-              </button>
-            </div>
-          </div>
-          <div class="card">
-            <p class="ct">QR Code for Guests</p>
-            <div class="qr-row">
-              <div class="qr-box"><img id="qr-img" src="" alt="QR" /></div>
-              <div class="qi">
-                <p>Guests scan to open the app, then enter the code above.</p>
-                <code class="app-url" id="app-url-d">—</code>
-                <button class="bsm bo" onclick="dlQR()">⬇ Download</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <p class="ct">Now Playing</p>
-          <div id="np-full">
-            <div class="empty">Nothing playing right now</div>
-          </div>
-        </div>
-
-        <div class="g2">
-          <div class="card" style="text-align: center; padding: 1.4rem">
-            <div class="stat-big" id="stat-guests">0</div>
-            <div class="stat-label">Guests Online</div>
-          </div>
-          <div class="card" style="text-align: center; padding: 1.4rem">
-            <div class="stat-big" id="stat-songs">0</div>
-            <div class="stat-label">Songs Queued Tonight</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Guests -->
-      <div class="page" id="page-guests">
-        <div class="hdr">
-          <span class="gc-badge" id="gc-badge">0 online</span>
-          <button class="bsm bo" onclick="loadGuests()">↺ Refresh</button>
-        </div>
-        <div id="guest-list"><div class="empty">No guests yet</div></div>
-      </div>
-
-      <!-- Settings -->
-      <div class="page" id="page-settings">
-        <div class="card">
-          <p class="ct">Queue Rules</p>
-          <div class="sr">
-            <div>
-              <div class="sl">Songs per person</div>
-              <div class="sd">
-                Max songs each guest can queue. 0 = no limit.
-              </div>
-            </div>
-            <div class="sc">
-              <input type="number" id="s-max" min="0" max="50" value="0" />
-              <span class="unit">songs</span>
-              <button
-                class="save-btn"
-                onclick="
-                  saveSetting(
-                    'maxSongsPerPerson',
-                    +document.getElementById('s-max').value,
-                  )
-                "
-              >
-                Save
-              </button>
-            </div>
-          </div>
-          <div class="sr">
-            <div>
-              <div class="sl">Song cooldown</div>
-              <div class="sd">
-                Seconds a guest must wait between queuing songs. 0 = no
-                cooldown.
-              </div>
-            </div>
-            <div class="sc">
-              <input type="number" id="s-cd" min="0" max="3600" value="120" />
-              <span class="unit">sec</span>
-              <button
-                class="save-btn"
-                onclick="
-                  saveSetting(
-                    'cooldownSeconds',
-                    +document.getElementById('s-cd').value,
-                  )
-                "
-              >
-                Save
-              </button>
-            </div>
-          </div>
-          <div class="sr">
-            <div>
-              <div class="sl">Pause queueing</div>
-              <div class="sd">Guests cannot add songs while this is on.</div>
-            </div>
-            <div class="sc">
-              <label class="toggle">
-                <input
-                  type="checkbox"
-                  id="s-pause"
-                  onchange="saveSetting('queuingPaused', this.checked)"
-                />
-                <span class="tsl"></span>
-              </label>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <p class="ct">Session Data</p>
-          <div class="sr">
-            <div>
-              <div class="sl">Clear session data</div>
-              <div class="sd">
-                Resets queue history, leaderboard, upvotes, and queued-song
-                tracking for the night.
-              </div>
-            </div>
-            <button class="bsm bd" onclick="clearSession()">Clear</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Blocklist -->
-      <div class="page" id="page-blocklist">
-        <div class="card">
-          <p class="ct">Block a Track or Artist</p>
-          <div class="sr-row">
-            <input
-              type="text"
-              id="blk-q"
-              placeholder="Search for a track or artist to block…"
-              onkeydown="if (event.key === 'Enter') blkSearch();"
-            />
-            <button class="sg" onclick="blkSearch()">Search</button>
-          </div>
-          <div id="blk-results"></div>
-        </div>
-        <div class="card">
-          <p class="ct">Blocked Items</p>
-          <div id="bl-items"><div class="empty">Nothing blocked</div></div>
-        </div>
-      </div>
-
-      <!-- Activity -->
-      <div class="page" id="page-activity">
-        <div class="hdr">
-          <p class="ct" style="margin: 0">Recent Activity</p>
-          <button class="bsm bo" onclick="loadActivity()">↺ Refresh</button>
-        </div>
-        <div id="act-list"><div class="empty">No activity yet</div></div>
-      </div>
-
-      <!-- Stats -->
-      <div class="page" id="page-stats">
-        <div class="hdr">
-          <p class="ct" style="margin: 0">Tonight's Stats</p>
-          <button class="bsm bo" onclick="loadMostRequested()">
-            ↺ Refresh
-          </button>
-        </div>
-        <div class="card">
-          <p class="ct">Most Requested Tonight</p>
-          <div id="mr-list"><div class="empty">No requests yet</div></div>
-        </div>
-        <div class="card">
-          <p class="ct">Reaction Leaderboard</p>
-          <div id="rx-admin-list">
-            <div class="empty">No reactions yet</div>
+      <div class="card">
+        <p class="ct">QR Code for Guests</p>
+        <div class="qr-row">
+          <div class="qr-box"><img id="qr-img" src="" alt="QR"/></div>
+          <div class="qi">
+            <p>Guests scan to open the app, then enter the code above.</p>
+            <code class="app-url" id="app-url-d">—</code>
+            <button class="bsm bo" onclick="dlQR()">⬇ Download</button>
           </div>
         </div>
       </div>
     </div>
 
-    <div id="toast"><span id="toast-text"></span></div>
+    <div class="card">
+      <p class="ct">Now Playing</p>
+      <div id="np-full"><div class="empty">Nothing playing right now</div></div>
+    </div>
 
-    <script>
-      let adminPw = "",
-        codeData = null,
-        appUrl = "";
-      let settings = {
-        maxSongsPerPerson: 0,
-        cooldownSeconds: 120,
-        queuingPaused: false,
-      };
-      let progressTimer = null;
+    <div class="g2">
+      <div class="card" style="text-align:center;padding:1.4rem">
+        <div class="stat-big" id="stat-guests">0</div>
+        <div class="stat-label">Guests Online</div>
+      </div>
+      <div class="card" style="text-align:center;padding:1.4rem">
+        <div class="stat-big" id="stat-songs">0</div>
+        <div class="stat-label">Songs Queued Tonight</div>
+      </div>
+    </div>
+  </div>
 
-      // ── Auth ──────────────────────────────────────────────────────────────
-      document.getElementById("pw").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") doLogin();
-      });
+  <!-- Guests -->
+  <div class="page" id="page-guests">
+    <div class="hdr">
+      <span class="gc-badge" id="gc-badge">0 online</span>
+      <button class="bsm bo" onclick="loadGuests()">↺ Refresh</button>
+    </div>
+    <div id="guest-list"><div class="empty">No guests yet</div></div>
+  </div>
 
-      async function doLogin() {
-        const pw = document.getElementById("pw").value;
-        const res = await fetch("/api/admin/code", {
-          headers: { "x-admin-password": pw },
-        });
-        if (res.ok) {
-          adminPw = pw;
-          sessionStorage.setItem("ap", pw);
-          document.getElementById("login").style.display = "none";
-          document.getElementById("app").style.display = "block";
-          init();
-        } else {
-          document.getElementById("lerr").style.display = "block";
-        }
-      }
+  <!-- Settings -->
+  <div class="page" id="page-settings">
+    <div class="card">
+      <p class="ct">Queue Rules</p>
+      <div class="sr">
+        <div>
+          <div class="sl">Songs per person</div>
+          <div class="sd">Max songs each guest can queue. 0 = no limit.</div>
+        </div>
+        <div class="sc">
+          <input type="number" id="s-max" min="0" max="50" value="0"/>
+          <span class="unit">songs</span>
+          <button class="save-btn" onclick="saveSetting('maxSongsPerPerson',+document.getElementById('s-max').value)">Save</button>
+        </div>
+      </div>
+      <div class="sr">
+        <div>
+          <div class="sl">Song cooldown</div>
+          <div class="sd">Seconds a guest must wait between queuing songs. 0 = no cooldown.</div>
+        </div>
+        <div class="sc">
+          <input type="number" id="s-cd" min="0" max="3600" value="120"/>
+          <span class="unit">sec</span>
+          <button class="save-btn" onclick="saveSetting('cooldownSeconds',+document.getElementById('s-cd').value)">Save</button>
+        </div>
+      </div>
+      <div class="sr">
+        <div>
+          <div class="sl">Pause queueing</div>
+          <div class="sd">Guests cannot add songs while this is on.</div>
+        </div>
+        <div class="sc">
+          <label class="toggle">
+            <input type="checkbox" id="s-pause" onchange="saveSetting('queuingPaused',this.checked)"/>
+            <span class="tsl"></span>
+          </label>
+        </div>
+      </div>
+      <div class="sr">
+        <div>
+          <div class="sl">Code rotation interval</div>
+          <div class="sd">How often the access code auto-rotates and kicks all guests. 1–24 hours.</div>
+        </div>
+        <div class="sc">
+          <input type="number" id="s-rotation" min="1" max="24" value="8"/>
+          <span class="unit">hrs</span>
+          <button class="save-btn" onclick="saveSetting('codeRotationHours',+document.getElementById('s-rotation').value)">Save</button>
+        </div>
+      </div>
+      <div class="sr">
+        <div>
+          <div class="sl">Guest session duration</div>
+          <div class="sd">How long a guest's access lasts after joining. Capped by code rotation. 1–24 hours.</div>
+        </div>
+        <div class="sc">
+          <input type="number" id="s-session" min="1" max="24" value="8"/>
+          <span class="unit">hrs</span>
+          <button class="save-btn" onclick="saveSetting('sessionDurationHours',+document.getElementById('s-session').value)">Save</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <p class="ct">Session Data</p>
+      <div class="sr">
+        <div>
+          <div class="sl">Clear session data</div>
+          <div class="sd">Resets queue history, leaderboard, upvotes, and queued-song tracking for the night.</div>
+        </div>
+        <button class="bsm bd" onclick="clearSession()">Clear</button>
+      </div>
+    </div>
+  </div>
 
-      function doLogout() {
-        sessionStorage.removeItem("ap");
-        location.reload();
-      }
+  <!-- Blocklist -->
+  <div class="page" id="page-blocklist">
+    <div class="card">
+      <p class="ct">Block a Track or Artist</p>
+      <div class="sr-row">
+        <input type="text" id="blk-q" placeholder="Search for a track or artist to block…" onkeydown="if(event.key==='Enter')blkSearch()"/>
+        <button class="sg" onclick="blkSearch()">Search</button>
+      </div>
+      <div id="blk-results"></div>
+    </div>
+    <div class="card">
+      <p class="ct">Blocked Items</p>
+      <div id="bl-items"><div class="empty">Nothing blocked</div></div>
+    </div>
+  </div>
 
-      const sp = sessionStorage.getItem("ap");
-      if (sp) {
-        document.getElementById("pw").value = sp;
-        doLogin();
-      }
+  <!-- Activity -->
+  <div class="page" id="page-activity">
+    <div class="hdr">
+      <p class="ct" style="margin:0">Recent Activity</p>
+      <button class="bsm bo" onclick="loadActivity()">↺ Refresh</button>
+    </div>
+    <div id="act-list"><div class="empty">No activity yet</div></div>
+  </div>
 
-      function af(url, opts = {}) {
-        return fetch(url, {
-          ...opts,
-          headers: { "x-admin-password": adminPw, ...(opts.headers || {}) },
-        });
-      }
+  <!-- Stats -->
+  <div class="page" id="page-stats">
+    <div class="hdr">
+      <p class="ct" style="margin:0">Tonight's Stats</p>
+      <button class="bsm bo" onclick="loadMostRequested()">↺ Refresh</button>
+    </div>
+    <div class="card">
+      <p class="ct">Most Requested Tonight</p>
+      <div id="mr-list"><div class="empty">No requests yet</div></div>
+    </div>
+    <div class="card">
+      <p class="ct">Reaction Leaderboard</p>
+      <div id="rx-admin-list"><div class="empty">No reactions yet</div></div>
+    </div>
+  </div>
+</div>
 
-      // ── Init ──────────────────────────────────────────────────────────────
-      function init() {
-        loadCode();
-        loadNowPlaying();
-        loadGuests();
-        loadSettings();
-        loadBlocklist();
-        setInterval(loadNowPlaying, 10000);
-        setInterval(loadGuests, 10000);
-        setInterval(updateExpiry, 60000);
-        setInterval(loadMostRequested, 15000);
-      }
+<div id="toast"><span id="toast-text"></span></div>
 
-      // ── Nav ───────────────────────────────────────────────────────────────
-      function showPage(name, btn) {
-        document
-          .querySelectorAll(".page")
-          .forEach((p) => p.classList.remove("active"));
-        document
-          .querySelectorAll(".nt")
-          .forEach((t) => t.classList.remove("active"));
-        document.getElementById("page-" + name).classList.add("active");
-        btn.classList.add("active");
-        if (name === "activity") loadActivity();
-        if (name === "stats") loadMostRequested();
-        if (name === "blocklist") loadBlocklist();
-        if (name === "guests") loadGuests();
-      }
+<script>
+let adminPw = '', codeData = null, appUrl = '';
+let settings = { maxSongsPerPerson: 0, cooldownSeconds: 120, queuingPaused: false };
+let progressTimer = null;
 
-      // ── Code & QR ─────────────────────────────────────────────────────────
-      async function loadCode() {
-        try {
-          const d = await af("/api/admin/code").then((r) => r.json());
-          codeData = d;
-          appUrl = d.appUrl;
-          document.getElementById("code-display").textContent = d.code;
-          document.getElementById("app-url-d").textContent = d.appUrl;
-          document.getElementById("qr-img").src = d.qrDataUrl;
-          updateExpiry();
-        } catch {
-          toast("Failed to load code", "error");
-        }
-      }
+// ── Auth ──────────────────────────────────────────────────────────────
+document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
-      function updateExpiry() {
-        if (!codeData) return;
-        const rem = codeData.expiresAt - Date.now();
-        const pct = Math.max(
-          0,
-          Math.min(
-            100,
-            (rem / (codeData.expiresAt - codeData.createdAt)) * 100,
-          ),
-        );
-        document.getElementById("ef").style.width = pct + "%";
-        const h = Math.floor(rem / 3600000),
-          m = Math.floor((rem % 3600000) / 60000);
-        document.getElementById("er").textContent =
-          rem > 0 ? `${h}h ${m}m remaining` : "Expired";
-        document.getElementById("code-exp").textContent = new Date(
-          codeData.expiresAt,
-        ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      }
+async function doLogin() {
+  const pw = document.getElementById('pw').value;
+  const res = await fetch('/api/admin/code', { headers: { 'x-admin-password': pw } });
+  if (res.ok) {
+    adminPw = pw;
+    sessionStorage.setItem('ap', pw);
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    init();
+  } else {
+    document.getElementById('lerr').style.display = 'block';
+  }
+}
 
-      async function rotateCode() {
-        if (!confirm("Rotate the code? All guests will be kicked immediately."))
-          return;
-        const d = await af("/api/admin/rotate-code", { method: "POST" }).then(
-          (r) => r.json(),
-        );
-        codeData = {
-          ...codeData,
-          code: d.code,
-          expiresAt: d.expiresAt,
-          createdAt: Date.now(),
-        };
-        document.getElementById("code-display").textContent = d.code;
-        updateExpiry();
-        loadGuests();
-        toast("Code rotated — all guests removed", "success");
-      }
+function doLogout() {
+  sessionStorage.removeItem('ap');
+  location.reload();
+}
 
-      function copyCode() {
-        navigator.clipboard.writeText(codeData?.code || "");
-        toast("Code copied!", "success");
-      }
-      function copyLink() {
-        navigator.clipboard.writeText(appUrl);
-        toast("Link copied!", "success");
-      }
-      function dlQR() {
-        const a = document.createElement("a");
-        a.href = document.getElementById("qr-img").src;
-        a.download = "queue-qr.png";
-        a.click();
-      }
+const sp = sessionStorage.getItem('ap');
+if (sp) { document.getElementById('pw').value = sp; doLogin(); }
 
-      // ── Now Playing ───────────────────────────────────────────────────────
-      async function loadNowPlaying() {
-        try {
-          const d = await fetch("/api/now-playing").then((r) => r.json());
-          renderNPFull(d);
-          renderNPPill(d);
-        } catch {}
-      }
+function af(url, opts = {}) {
+  return fetch(url, { ...opts, headers: { 'x-admin-password': adminPw, ...(opts.headers || {}) } });
+}
 
-      function renderNPFull(d) {
-        const el = document.getElementById("np-full");
-        clearInterval(progressTimer);
-        if (!d.name) {
-          el.innerHTML = `<div class="empty">Nothing playing right now</div>`;
-          return;
-        }
-        const pct = d.duration_ms ? (d.progress_ms / d.duration_ms) * 100 : 0;
-        const rx = d.reactions || {};
-        el.innerHTML = `
+// ── Init ──────────────────────────────────────────────────────────────
+function init() {
+  loadCode();
+  loadNowPlaying();
+  loadGuests();
+  loadSettings();
+  loadBlocklist();
+  loadHostName();
+  setInterval(loadNowPlaying, 10000);
+  setInterval(loadGuests, 10000);
+  setInterval(updateExpiry, 60000);
+  setInterval(loadMostRequested, 15000);
+}
+
+// ── Nav ───────────────────────────────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nt').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'activity') loadActivity();
+  if (name === 'stats') loadMostRequested();
+  if (name === 'blocklist') loadBlocklist();
+  if (name === 'guests') loadGuests();
+}
+
+// ── Code & QR ─────────────────────────────────────────────────────────
+async function loadCode() {
+  try {
+    const d = await af('/api/admin/code').then(r => r.json());
+    codeData = d; appUrl = d.appUrl;
+    document.getElementById('code-display').textContent = d.code;
+    document.getElementById('app-url-d').textContent = d.appUrl;
+    document.getElementById('qr-img').src = d.qrDataUrl;
+    updateExpiry();
+  } catch { toast('Failed to load code', 'error'); }
+}
+
+function updateExpiry() {
+  if (!codeData) return;
+  const rem = codeData.expiresAt - Date.now();
+  const pct = Math.max(0, Math.min(100, (rem / (codeData.expiresAt - codeData.createdAt)) * 100));
+  document.getElementById('ef').style.width = pct + '%';
+  const h = Math.floor(rem / 3600000), m = Math.floor((rem % 3600000) / 60000);
+  document.getElementById('er').textContent = rem > 0 ? `${h}h ${m}m remaining` : 'Expired';
+  document.getElementById('code-exp').textContent = new Date(codeData.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+async function rotateCode() {
+  if (!confirm('Rotate the code? All guests will be kicked immediately.')) return;
+  const d = await af('/api/admin/rotate-code', { method: 'POST' }).then(r => r.json());
+  codeData = { ...codeData, code: d.code, expiresAt: d.expiresAt, createdAt: Date.now() };
+  document.getElementById('code-display').textContent = d.code;
+  updateExpiry(); loadGuests();
+  toast('Code rotated — all guests removed', 'success');
+}
+
+function copyCode() { navigator.clipboard.writeText(codeData?.code || ''); toast('Code copied!', 'success'); }
+function copyLink() { navigator.clipboard.writeText(appUrl); toast('Link copied!', 'success'); }
+function dlQR() { const a = document.createElement('a'); a.href = document.getElementById('qr-img').src; a.download = 'queue-qr.png'; a.click(); }
+
+// ── Now Playing ───────────────────────────────────────────────────────
+async function loadNowPlaying() {
+  try {
+    const d = await fetch('/api/now-playing').then(r => r.json());
+    renderNPFull(d);
+    renderNPPill(d);
+  } catch {}
+}
+
+function renderNPFull(d) {
+  const el = document.getElementById('np-full');
+  clearInterval(progressTimer);
+  if (!d.name) { el.innerHTML = `<div class="empty">Nothing playing right now</div>`; return; }
+  const pct = d.duration_ms ? (d.progress_ms / d.duration_ms) * 100 : 0;
+  const rx = d.reactions || {};
+  el.innerHTML = `
     <div class="np-full-row">
       <div class="np-full-art">
-        ${d.image ? `<img src="${d.image}" alt=""/>` : ""}
-        ${d.playing ? `<div class="bars"><span></span><span></span><span></span></div>` : ""}
+        ${d.image ? `<img src="${d.image}" alt=""/>` : ''}
+        ${d.playing ? `<div class="bars"><span></span><span></span><span></span></div>` : ''}
       </div>
       <div class="np-full-info">
         <div class="np-fn">${esc(d.name)}</div>
         <div class="np-fm">${esc(d.artist)} · ${esc(d.album)}</div>
         <div class="pb"><div class="pf" id="npf-pf" style="width:${pct}%"></div></div>
       </div>
-      ${!d.playing ? `<span class="np-paused-tag">Paused</span>` : ""}
+      ${!d.playing ? `<span class="np-paused-tag">Paused</span>` : ''}
     </div>
     <div class="rx-row">
-      ${["🔥", "👍", "💀"].map((e) => `<div class="rx-btn">${e} <span class="rx-count">${rx[e] || 0}</span></div>`).join("")}
+      ${['🔥','👍','💀'].map(e => `<div class="rx-btn">${e} <span class="rx-count">${rx[e] || 0}</span></div>`).join('')}
     </div>
   `;
-        if (d.playing && d.duration_ms) {
-          let el2 = d.progress_ms;
-          progressTimer = setInterval(() => {
-            el2 += 1000;
-            const f = document.getElementById("npf-pf");
-            if (f)
-              f.style.width = Math.min((el2 / d.duration_ms) * 100, 100) + "%";
-          }, 1000);
-        }
-      }
+  if (d.playing && d.duration_ms) {
+    let el2 = d.progress_ms;
+    progressTimer = setInterval(() => {
+      el2 += 1000;
+      const f = document.getElementById('npf-pf');
+      if (f) f.style.width = Math.min((el2 / d.duration_ms) * 100, 100) + '%';
+    }, 1000);
+  }
+}
 
-      function renderNPPill(d) {
-        const pill = document.getElementById("np-pill");
-        if (!d.name || !d.playing) {
-          pill.style.display = "none";
-          return;
-        }
-        pill.style.display = "flex";
-        document.getElementById("np-pill-name").textContent = d.name;
-        const art = document.getElementById("np-pill-art");
-        art.innerHTML = d.image ? `<img src="${d.image}" alt=""/>` : "";
-      }
+function renderNPPill(d) {
+  const pill = document.getElementById('np-pill');
+  if (!d.name || !d.playing) { pill.style.display = 'none'; return; }
+  pill.style.display = 'flex';
+  document.getElementById('np-pill-name').textContent = d.name;
+  const art = document.getElementById('np-pill-art');
+  art.innerHTML = d.image ? `<img src="${d.image}" alt=""/>` : '';
+}
 
-      // ── Guests ────────────────────────────────────────────────────────────
-      async function loadGuests() {
-        try {
-          const d = await af("/api/admin/guests").then((r) => r.json());
-          const guests = d.guests || [];
-          document.getElementById("gc-badge").textContent =
-            `${guests.length} online`;
-          document.getElementById("stat-guests").textContent = guests.length;
-          const totalSongs = guests.reduce((s, g) => s + g.songsQueued, 0);
-          document.getElementById("stat-songs").textContent = totalSongs;
-          const list = document.getElementById("guest-list");
-          if (!guests.length) {
-            list.innerHTML = `<div class="empty">No guests yet</div>`;
-            return;
-          }
-          list.innerHTML = guests
-            .map(
-              (g) => `
+// ── Guests ────────────────────────────────────────────────────────────
+async function loadGuests() {
+  try {
+    const d = await af('/api/admin/guests').then(r => r.json());
+    const guests = d.guests || [];
+    document.getElementById('gc-badge').textContent = `${guests.length} online`;
+    document.getElementById('stat-guests').textContent = guests.length;
+    const totalSongs = guests.reduce((s, g) => s + g.songsQueued, 0);
+    document.getElementById('stat-songs').textContent = totalSongs;
+    const list = document.getElementById('guest-list');
+    if (!guests.length) { list.innerHTML = `<div class="empty">No guests yet</div>`; return; }
+    list.innerHTML = guests.map(g => `
       <div class="gr" id="gr-${g.sessionId}">
         <div class="gav">${esc(g.name.charAt(0))}</div>
         <div class="gi">
           <div class="gn">${esc(g.name)}</div>
-          <div class="gm">Joined ${timeAgo(g.grantedAt)} · expires ${new Date(g.expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+          <div class="gm">Joined ${timeAgo(g.grantedAt)} · expires ${new Date(g.expiresAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
         </div>
-        <span class="gs">${g.songsQueued} song${g.songsQueued !== 1 ? "s" : ""}</span>
+        <span class="gs">${g.songsQueued} song${g.songsQueued !== 1 ? 's' : ''}</span>
         <button class="rm-btn" onclick="removeGuest('${g.sessionId}','${esc(g.name)}')">Remove</button>
       </div>
-    `,
-            )
-            .join("");
-        } catch {}
-      }
+    `).join('');
+  } catch {}
+}
 
-      async function removeGuest(id, name) {
-        await af(`/api/admin/guests/${id}`, { method: "DELETE" });
-        document.getElementById(`gr-${id}`)?.remove();
-        toast(`${name} removed`, "success");
-        loadGuests();
-      }
+async function removeGuest(id, name) {
+  await af(`/api/admin/guests/${id}`, { method: 'DELETE' });
+  document.getElementById(`gr-${id}`)?.remove();
+  toast(`${name} removed`, 'success');
+  loadGuests();
+}
 
-      // ── Settings ──────────────────────────────────────────────────────────
-      async function loadSettings() {
-        try {
-          const d = await af("/api/admin/settings").then((r) => r.json());
-          settings = d;
-          document.getElementById("s-max").value = d.maxSongsPerPerson;
-          document.getElementById("s-cd").value = d.cooldownSeconds;
-          document.getElementById("s-pause").checked = d.queuingPaused;
-          applyPausedUI(d.queuingPaused);
-        } catch {}
-      }
+// ── Settings ──────────────────────────────────────────────────────────
+async function loadSettings() {
+  try {
+    const d = await af('/api/admin/settings').then(r => r.json());
+    settings = d;
+    document.getElementById('s-max').value = d.maxSongsPerPerson;
+    document.getElementById('s-cd').value = d.cooldownSeconds;
+    document.getElementById('s-pause').checked = d.queuingPaused;
+    document.getElementById('s-rotation').value = d.codeRotationHours ?? 8;
+    document.getElementById('s-session').value = d.sessionDurationHours ?? 8;
+    applyPausedUI(d.queuingPaused);
+  } catch {}
+}
 
-      async function saveSetting(key, value) {
-        try {
-          const d = await af("/api/admin/settings", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ [key]: value }),
-          }).then((r) => r.json());
-          settings = d;
-          if (key === "queuingPaused") applyPausedUI(d.queuingPaused);
-          toast("Setting saved", "success");
-        } catch {
-          toast("Failed to save", "error");
-        }
-      }
+async function loadHostName() {
+  try {
+    const d = await fetch('/api/host-name').then(r => r.json());
+    const el = document.getElementById('host-name-admin');
+    if (el && d.hostName) el.textContent = d.hostName + "'s Queue";
+  } catch {}
+}
 
-      function applyPausedUI(paused) {
-        document.getElementById("pause-banner").style.display = paused
-          ? "block"
-          : "none";
-        const btn = document.getElementById("pause-btn");
-        btn.textContent = paused ? "▶ Resume Queue" : "⏸ Pause Queue";
-        btn.className = paused ? "bsm bw paused" : "bsm bw";
-        document.getElementById("s-pause").checked = paused;
-      }
+async function saveSetting(key, value) {
+  try {
+    const d = await af('/api/admin/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [key]: value })
+    }).then(r => r.json());
+    settings = d;
+    if (key === 'queuingPaused') applyPausedUI(d.queuingPaused);
+    toast('Setting saved', 'success');
+  } catch { toast('Failed to save', 'error'); }
+}
 
-      async function togglePause() {
-        await saveSetting("queuingPaused", !settings.queuingPaused);
-      }
+function applyPausedUI(paused) {
+  document.getElementById('pause-banner').style.display = paused ? 'block' : 'none';
+  const btn = document.getElementById('pause-btn');
+  btn.textContent = paused ? '▶ Resume Queue' : '⏸ Pause Queue';
+  btn.className = paused ? 'bsm bw paused' : 'bsm bw';
+  document.getElementById('s-pause').checked = paused;
+}
 
-      async function clearSession() {
-        if (!confirm("Clear all session data (history, leaderboard, upvotes)?"))
-          return;
-        await af("/api/admin/history", { method: "DELETE" });
-        toast("Session data cleared", "success");
-      }
+async function togglePause() {
+  await saveSetting('queuingPaused', !settings.queuingPaused);
+}
 
-      // ── Blocklist ─────────────────────────────────────────────────────────
-      let blkList = [];
+async function clearSession() {
+  if (!confirm('Clear all session data (history, leaderboard, upvotes)?')) return;
+  await af('/api/admin/history', { method: 'DELETE' });
+  toast('Session data cleared', 'success');
+}
 
-      async function loadBlocklist() {
-        try {
-          const d = await af("/api/admin/blocklist").then((r) => r.json());
-          blkList = d.blocklist || [];
-          renderBlocklist();
-        } catch {}
-      }
+// ── Blocklist ─────────────────────────────────────────────────────────
+let blkList = [];
 
-      function renderBlocklist() {
-        const el = document.getElementById("bl-items");
-        if (!blkList.length) {
-          el.innerHTML = `<div class="empty">Nothing blocked</div>`;
-          return;
-        }
-        el.innerHTML = blkList
-          .map(
-            (b) => `
+async function loadBlocklist() {
+  try {
+    const d = await af('/api/admin/blocklist').then(r => r.json());
+    blkList = d.blocklist || [];
+    renderBlocklist();
+  } catch {}
+}
+
+function renderBlocklist() {
+  const el = document.getElementById('bl-items');
+  if (!blkList.length) { el.innerHTML = `<div class="empty">Nothing blocked</div>`; return; }
+  el.innerHTML = blkList.map(b => `
     <div class="bl-item">
       <span class="bl-type">${b.type}</span>
       <span class="bl-name">${esc(b.name)}</span>
       <button class="unblk" onclick="unblock('${b.id}')">Unblock</button>
     </div>
-  `,
-          )
-          .join("");
-      }
+  `).join('');
+}
 
-      async function blkSearch() {
-        const q = document.getElementById("blk-q").value.trim();
-        if (!q) return;
-        const el = document.getElementById("blk-results");
-        el.innerHTML = `<div class="empty">Searching…</div>`;
-        try {
-          const token = await fetch("/api/now-playing")
-            .then(() => null)
-            .catch(() => null);
-          // Use the search endpoint (requires guest session) — admin searches via direct Spotify proxy
-          const res = await af(`/api/admin/search?q=${encodeURIComponent(q)}`);
-          const d = await res.json();
-          if (!d.tracks?.length) {
-            el.innerHTML = `<div class="empty">No results</div>`;
-            return;
-          }
-          el.innerHTML = d.tracks
-            .map(
-              (t) => `
+async function blkSearch() {
+  const q = document.getElementById('blk-q').value.trim();
+  if (!q) return;
+  const el = document.getElementById('blk-results');
+  el.innerHTML = `<div class="empty">Searching…</div>`;
+  try {
+    const token = await fetch('/api/now-playing').then(() => null).catch(() => null);
+    // Use the search endpoint (requires guest session) — admin searches via direct Spotify proxy
+    const res = await af(`/api/admin/search?q=${encodeURIComponent(q)}`);
+    const d = await res.json();
+    if (!d.tracks?.length) { el.innerHTML = `<div class="empty">No results</div>`; return; }
+    el.innerHTML = d.tracks.map(t => `
       <div class="br-item">
-        <div class="br-art">${t.image ? `<img src="${t.image}" alt=""/>` : ""}</div>
+        <div class="br-art">${t.image ? `<img src="${t.image}" alt=""/>` : ''}</div>
         <div class="br-info">
           <div class="br-name">${esc(t.name)}</div>
           <div class="br-meta">${esc(t.artist)}</div>
         </div>
-        <button class="blk-btn" onclick="blockItem('track','${t.id}','${t.uri}','${esc(t.name).replace(/'/g, "\\'")}')">Block Track</button>
-        <button class="blk-btn" style="margin-left:4px" onclick="blockItem('artist','${t.artistIds[0]}','','${esc(t.artist).replace(/'/g, "\\'")}')">Block Artist</button>
+        <button class="blk-btn" onclick="blockItem('track','${t.id}','${t.uri}','${esc(t.name).replace(/'/g,"\\'")}')">Block Track</button>
+        <button class="blk-btn" style="margin-left:4px" onclick="blockItem('artist','${t.artistIds[0]}','','${esc(t.artist).replace(/'/g,"\\'")}')">Block Artist</button>
       </div>
-    `,
-            )
-            .join("");
-        } catch {
-          el.innerHTML = `<div class="empty">Search failed</div>`;
-        }
-      }
+    `).join('');
+  } catch { el.innerHTML = `<div class="empty">Search failed</div>`; }
+}
 
-      async function blockItem(type, id, uri, name) {
-        await af("/api/admin/blocklist", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type, id, uri, name }),
-        });
-        toast(`"${name}" blocked`, "success");
-        loadBlocklist();
-      }
+async function blockItem(type, id, uri, name) {
+  await af('/api/admin/blocklist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type, id, uri, name })
+  });
+  toast(`"${name}" blocked`, 'success');
+  loadBlocklist();
+}
 
-      async function unblock(id) {
-        await af(`/api/admin/blocklist/${id}`, { method: "DELETE" });
-        toast("Unblocked", "success");
-        loadBlocklist();
-      }
+async function unblock(id) {
+  await af(`/api/admin/blocklist/${id}`, { method: 'DELETE' });
+  toast('Unblocked', 'success');
+  loadBlocklist();
+}
 
-      // ── Activity ──────────────────────────────────────────────────────────
-      async function loadActivity() {
-        try {
-          const d = await af("/api/admin/activity").then((r) => r.json());
-          const el = document.getElementById("act-list");
-          if (!d.log?.length) {
-            el.innerHTML = `<div class="empty">No activity yet</div>`;
-            return;
-          }
-          const icons = {
-            queued: "🎵",
-            joined: "👋",
-            removed: "🚫",
-            blocked: "🚫",
-            "rotated access code": "🔄",
-            "updated settings": "⚙️",
-            "cleared session data": "🗑️",
-          };
-          el.innerHTML = d.log
-            .map(
-              (a) => `
+// ── Activity ──────────────────────────────────────────────────────────
+async function loadActivity() {
+  try {
+    const d = await af('/api/admin/activity').then(r => r.json());
+    const el = document.getElementById('act-list');
+    if (!d.log?.length) { el.innerHTML = `<div class="empty">No activity yet</div>`; return; }
+    const icons = { queued: '🎵', joined: '👋', removed: '🚫', blocked: '🚫', 'rotated access code': '🔄', 'updated settings': '⚙️', 'cleared session data': '🗑️' };
+    el.innerHTML = d.log.map(a => `
       <div class="ai">
-        <span class="ai-icon">${icons[a.action] || "•"}</span>
+        <span class="ai-icon">${icons[a.action] || '•'}</span>
         <span class="ai-who">${esc(a.guestName)}</span>
         <span class="ai-what">
-          ${a.action}${a.trackName ? ` <span class="ai-track">"${esc(a.trackName)}"</span>` : ""}
-          ${a.artist ? ` by ${esc(a.artist)}` : ""}
+          ${a.action}${a.trackName ? ` <span class="ai-track">"${esc(a.trackName)}"</span>` : ''}
+          ${a.artist ? ` by ${esc(a.artist)}` : ''}
         </span>
         <span class="ai-time">${timeAgo(a.ts)}</span>
       </div>
-    `,
-            )
-            .join("");
-        } catch {}
-      }
+    `).join('');
+  } catch {}
+}
 
-      // ── Most Requested ────────────────────────────────────────────────────
-      async function loadMostRequested() {
-        try {
-          const d = await af("/api/admin/most-requested").then((r) => r.json());
-          const el = document.getElementById("mr-list");
-          if (!d.tracks?.length) {
-            el.innerHTML = `<div class="empty">No requests yet</div>`;
-            return;
-          }
-          const medals = ["gold", "silver", "bronze"];
-          el.innerHTML = d.tracks
-            .map(
-              (t, i) => `
+// ── Most Requested ────────────────────────────────────────────────────
+async function loadMostRequested() {
+  try {
+    const d = await af('/api/admin/most-requested').then(r => r.json());
+    const el = document.getElementById('mr-list');
+    if (!d.tracks?.length) { el.innerHTML = `<div class="empty">No requests yet</div>`; return; }
+    const medals = ['gold', 'silver', 'bronze'];
+    el.innerHTML = d.tracks.map((t, i) => `
       <div class="mr-item">
-        <span class="mr-rank${medals[i] ? " " + medals[i] : ""}">${i + 1}</span>
-        <div class="mr-art">${t.image ? `<img src="${t.image}" alt=""/>` : ""}</div>
+        <span class="mr-rank${medals[i] ? ' ' + medals[i] : ''}">${i + 1}</span>
+        <div class="mr-art">${t.image ? `<img src="${t.image}" alt=""/>` : ''}</div>
         <div class="mr-info">
           <div class="mr-name">${esc(t.name)}</div>
           <div class="mr-artist">${esc(t.artist)}</div>
         </div>
         <span class="mr-count">×${t.count}</span>
       </div>
-    `,
-            )
-            .join("");
-        } catch {}
+    `).join('');
+  } catch {}
 
-        // Also load reaction stats
-        try {
-          const d = await fetch("/api/reaction-stats").then((r) => r.json());
-          const el = document.getElementById("rx-admin-list");
-          if (!d.stats?.length) {
-            el.innerHTML = `<div class="empty">No reactions yet</div>`;
-            return;
-          }
-          el.innerHTML = d.stats
-            .map(
-              (s) => `
+  // Also load reaction stats
+  try {
+    const d = await fetch('/api/reaction-stats').then(r => r.json());
+    const el = document.getElementById('rx-admin-list');
+    if (!d.stats?.length) { el.innerHTML = `<div class="empty">No reactions yet</div>`; return; }
+    el.innerHTML = d.stats.map(s => `
       <div class="mr-item">
-        <div class="mr-art">${s.image ? `<img src="${s.image}" alt=""/>` : ""}</div>
+        <div class="mr-art">${s.image ? `<img src="${s.image}" alt=""/>` : ''}</div>
         <div class="mr-info">
           <div class="mr-name">${esc(s.name)}</div>
           <div class="mr-artist">${esc(s.artist)}</div>
         </div>
         <div style="display:flex;gap:10px;flex-shrink:0;font-size:.82rem">
-          <span>🔥 ${s["🔥"] || 0}</span>
-          <span>👍 ${s["👍"] || 0}</span>
-          <span>💀 ${s["💀"] || 0}</span>
+          <span>🔥 ${s['🔥'] || 0}</span>
+          <span>👍 ${s['👍'] || 0}</span>
+          <span>💀 ${s['💀'] || 0}</span>
         </div>
       </div>
-    `,
-            )
-            .join("");
-        } catch {}
-      }
+    `).join('');
+  } catch {}
+}
 
-      // ── Helpers ───────────────────────────────────────────────────────────
-      function toast(msg, type = "success") {
-        const t = document.getElementById("toast");
-        document.getElementById("toast-text").textContent = msg;
-        t.className = `show ${type}`;
-        clearTimeout(t._t);
-        t._t = setTimeout(() => (t.className = ""), 2800);
-      }
+// ── Helpers ───────────────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-text').textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className = '', 2800);
+}
 
-      function esc(s) {
-        return String(s)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-      function timeAgo(ts) {
-        const m = Math.floor((Date.now() - ts) / 60000);
-        if (m < 1) return "just now";
-        if (m < 60) return `${m}m ago`;
-        return `${Math.floor(m / 60)}h ${m % 60}m ago`;
-      }
-    </script>
-  </body>
+function timeAgo(ts) {
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m/60)}h ${m % 60}m ago`;
+}
+</script>
+</body>
 </html>
