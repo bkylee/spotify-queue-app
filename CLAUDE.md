@@ -35,7 +35,7 @@ A web app that lets guests add songs to a host's Spotify queue without needing a
 
 ## Tech stack
 
-- **Runtime:** Node.js 20 LTS
+- **Runtime:** Node.js 22 LTS
 - **Framework:** Express
 - **Frontend:** Vanilla JS (no framework)
 - **Spotify:** Spotify Web API (search, queue, now playing, profile)
