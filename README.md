@@ -6,7 +6,7 @@ A web app that lets guests add songs to your Spotify queue without needing a Spo
 
 ### Guest Experience
 - **Access code landing page** — guests enter a 6-character code and their name to gain access
-- **Now playing** — live album art, song/artist info, and animated progress bar
+- **Now playing** — live album art, song/artist info, and animated progress bar; album art blurs into a full-screen backdrop with glass morphism cards while music is playing
 - **Reaction buttons** — guests react to the current song with 🔥 👍 💀 (one reaction per song, toggle off by clicking again)
 - **Up next queue** — shows the next 15 songs with "Queued by [name]" attribution
 - **Search** — search Spotify's full catalog to find and queue any track
@@ -16,6 +16,8 @@ A web app that lets guests add songs to your Spotify queue without needing a Spo
 - **History tab** — songs played tonight
 - **Reactions tab** — leaderboard of reaction totals per song
 - **Session expiry** — countdown showing when access expires, expired overlay with re-entry prompt
+- **Light/dark mode** — toggle persisted in `localStorage`, applied before first paint to avoid flash
+- **Mobile bottom tab bar** — fixed bottom navigation for Search / History / Reactions on small screens
 
 ### Admin Dashboard (`/admin.html`)
 - **Password-protected login** — session persists across page refreshes
@@ -30,6 +32,7 @@ A web app that lets guests add songs to your Spotify queue without needing a Spo
 - **Activity log** — timestamped feed of every join, queue, block, and admin action
 - **Stats** — most requested leaderboard with gold/silver/bronze medals, reaction leaderboard per song
 - **Auto-refresh** — guests, now playing, and stats all refresh in the background
+- **Light/dark mode** — same toggle available on the admin dashboard
 
 ### Access Control
 - 6-character alphanumeric access codes with configurable auto-rotation interval (default 8h, 1–24h range)
