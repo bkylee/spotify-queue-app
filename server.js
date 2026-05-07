@@ -138,6 +138,10 @@ async function deleteBlocklistItem(id) {
   await tableDelete('blocklist', 'block', id);
 }
 
+function safeKey(uri) {
+  return uri.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 100);
+}
+
 // ─── Reaction history (persisted) ────────────────────────────────────
 
 let reactionHistory = {};
@@ -162,7 +166,7 @@ async function loadReactionHistory() {
 async function saveReactionEntry(uri) {
   const r = reactionHistory[uri];
   if (!r) return;
-  const safeRowKey = uri.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 100);
+  const safeRowKey = safeKey(uri);
   await tableUpsert('reactions', {
     partitionKey: 'reaction',
     rowKey: safeRowKey,
@@ -198,7 +202,7 @@ async function loadLeaderboard() {
 async function saveLeaderboardEntry(uri) {
   const t = mostRequested[uri];
   if (!t) return;
-  const safeRowKey = uri.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 100);
+  const safeRowKey = safeKey(uri);
   await tableUpsert('leaderboard', {
     partitionKey: 'track',
     rowKey: safeRowKey,
@@ -251,7 +255,7 @@ let reactions = {};
 let currentTrackUri = null;
 let lastPlayingUri = null;
 let queueHistory = [];
-let nowPlayingCache = null; // stores current track metadata for reaction lookups
+let nowPlayingCache = null;
 
 const EMOJIS = ['🔥', '👍', '💀'];
 
@@ -323,17 +327,26 @@ setInterval(async () => {
     const res = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (res.status === 204 || !res.ok) return;
+    if (res.status === 204) { nowPlayingCache = null; return; }
+    if (!res.ok) return;
     const resData = await res.json();
-    if (!resData?.item) return;
-    const uri = resData.item.uri;
+    if (!resData?.item) { nowPlayingCache = null; return; }
+    const t = resData.item;
+    const uri = t.uri;
+    nowPlayingCache = {
+      playing: resData.is_playing, uri,
+      name: t.name, artist: t.artists.map(a => a.name).join(', '),
+      album: t.album.name,
+      image: t.album.images?.[1]?.url || t.album.images?.[0]?.url || null,
+      progress_ms: resData.progress_ms, duration_ms: t.duration_ms,
+    };
     if (uri !== lastPlayingUri) {
       if (lastPlayingUri) {
         queueHistory.unshift({
           uri: lastPlayingUri,
-          name: resData.item.name,
-          artist: resData.item.artists.map(a => a.name).join(', '),
-          image: resData.item.album.images?.[2]?.url || null,
+          name: t.name,
+          artist: t.artists.map(a => a.name).join(', '),
+          image: t.album.images?.[2]?.url || null,
           playedAt: Date.now(),
         });
         if (queueHistory.length > 50) queueHistory.pop();
@@ -341,6 +354,8 @@ setInterval(async () => {
       reactions[uri] = { '🔥': 0, '👍': 0, '💀': 0 };
       currentTrackUri = uri;
       lastPlayingUri = uri;
+    } else if (!reactions[uri]) {
+      reactions[uri] = { '🔥': 0, '👍': 0, '💀': 0 };
     }
   } catch {}
 }, 8000);
@@ -414,6 +429,28 @@ app.get('/callback', async (req, res) => {
   }
 });
 
+// ─── Spotify helpers ──────────────────────────────────────────────────
+
+async function spotifySearchTracks(q, limit = 8) {
+  const token = await getAccessToken();
+  const url = new URL('https://api.spotify.com/v1/search');
+  url.searchParams.set('q', q);
+  url.searchParams.set('type', 'track');
+  url.searchParams.set('limit', String(limit));
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error('Search failed');
+  const data = await res.json();
+  return data.tracks.items;
+}
+
+function recordQueuedTrack(uri, name, artist, image, queuedBy) {
+  queuedThisSession[uri] = { name, artist, queuedBy, queuedAt: Date.now() };
+  if (!mostRequested[uri]) mostRequested[uri] = { uri, name, artist, image, count: 0 };
+  mostRequested[uri].count++;
+  saveLeaderboardEntry(uri);
+  logActivity(queuedBy, 'queued', name, artist);
+}
+
 // ─── Guest access ─────────────────────────────────────────────────────
 
 app.post('/api/access/verify', (req, res) => {
@@ -456,28 +493,9 @@ app.get('/api/me', async (req, res) => {
   } catch { res.status(500).json({ error: 'Could not fetch profile' }); }
 });
 
-app.get('/api/now-playing', async (req, res) => {
-  try {
-    const token = await getAccessToken();
-    const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', { headers: { Authorization: `Bearer ${token}` } });
-    if (response.status === 204) return res.json({ playing: false });
-    if (!response.ok) throw new Error('Now playing fetch failed');
-    const nowData = await response.json();
-    if (!nowData?.item) return res.json({ playing: false });
-    const t = nowData.item;
-    const uri = t.uri;
-    if (!reactions[uri]) reactions[uri] = { '🔥': 0, '👍': 0, '💀': 0 };
-    const npData = {
-      playing: nowData.is_playing, uri,
-      name: t.name, artist: t.artists.map(a => a.name).join(', '),
-      album: t.album.name,
-      image: t.album.images?.[1]?.url || t.album.images?.[0]?.url || null,
-      progress_ms: nowData.progress_ms, duration_ms: t.duration_ms,
-      reactions: reactions[uri],
-    };
-    nowPlayingCache = npData; // cache for reaction lookups
-    res.json(npData);
-  } catch { res.status(500).json({ error: 'Could not fetch now playing' }); }
+app.get('/api/now-playing', (req, res) => {
+  if (!nowPlayingCache) return res.json({ playing: false });
+  res.json({ ...nowPlayingCache, reactions: reactions[nowPlayingCache.uri] || {} });
 });
 
 app.get('/api/queue-list', async (req, res) => {
@@ -525,15 +543,8 @@ app.get('/api/search', requireGuest, async (req, res) => {
   const { q } = req.query;
   if (!q || q.trim().length < 2) return res.json({ tracks: [] });
   try {
-    const token = await getAccessToken();
-    const searchUrl = new URL('https://api.spotify.com/v1/search');
-    searchUrl.searchParams.set('q', q);
-    searchUrl.searchParams.set('type', 'track');
-    searchUrl.searchParams.set('limit', '8');
-    const response = await fetch(searchUrl, { headers: { Authorization: `Bearer ${token}` } });
-    if (!response.ok) throw new Error('Search failed');
-    const searchData = await response.json();
-    const tracks = searchData.tracks.items.map(t => {
+    const items = await spotifySearchTracks(q);
+    const tracks = items.map(t => {
       const isBlocked = blocklist.some(b =>
         (b.type === 'track' && b.id === t.id) ||
         (b.type === 'artist' && t.artists.some(a => a.id === b.id))
@@ -595,13 +606,7 @@ app.post('/api/queue', requireGuest, async (req, res) => {
 
     session.songsQueued++;
     session.lastQueuedAt = Date.now();
-    queuedThisSession[uri] = { name, artist, queuedBy: session.name, queuedAt: Date.now() };
-
-    if (!mostRequested[uri]) mostRequested[uri] = { uri, name, artist, image, count: 0 };
-    mostRequested[uri].count++;
-    saveLeaderboardEntry(uri); // persist async
-
-    logActivity(session.name, 'queued', name, artist);
+    recordQueuedTrack(uri, name, artist, image, session.name);
     res.json({ success: true });
   } catch (err) {
     const status = err.status || 500;
@@ -625,7 +630,6 @@ app.post('/api/react', requireGuest, (req, res) => {
   const prevIndex = userReactions[sessionId][uri];
   const prevEmoji = EMOJIS[prevIndex];
 
-  // If clicking same emoji, remove reaction (toggle off)
   if (prevIndex === emojiIndex) {
     reactions[uri][emoji] = Math.max(0, (reactions[uri][emoji] || 0) - 1);
     delete userReactions[sessionId][uri];
@@ -637,7 +641,6 @@ app.post('/api/react', requireGuest, (req, res) => {
     return res.json({ reactions: reactions[uri], myReaction: null });
   }
 
-  // If switching emoji, remove old one first
   if (prevEmoji && prevIndex !== emojiIndex) {
     reactions[uri][prevEmoji] = Math.max(0, (reactions[uri][prevEmoji] || 0) - 1);
     if (reactionHistory[uri]) {
@@ -646,11 +649,9 @@ app.post('/api/react', requireGuest, (req, res) => {
     }
   }
 
-  // Add new reaction
   reactions[uri][emoji]++;
   userReactions[sessionId][uri] = emojiIndex;
 
-  // Get track metadata
   const trackMeta = queuedThisSession[uri] || mostRequested[uri];
   const nowPlayingMeta = (currentTrackUri === uri && nowPlayingCache) ? nowPlayingCache : null;
   const trackName = trackMeta?.name || nowPlayingMeta?.name || '';
@@ -770,15 +771,8 @@ app.get('/api/admin/search', requireAdmin, async (req, res) => {
   const { q } = req.query;
   if (!q) return res.json({ tracks: [] });
   try {
-    const token = await getAccessToken();
-    const searchUrl = new URL('https://api.spotify.com/v1/search');
-    searchUrl.searchParams.set('q', q);
-    searchUrl.searchParams.set('type', 'track');
-    searchUrl.searchParams.set('limit', '8');
-    const response = await fetch(searchUrl, { headers: { Authorization: `Bearer ${token}` } });
-    if (!response.ok) throw new Error('Search failed');
-    const searchData = await response.json();
-    const tracks = searchData.tracks.items.map(t => ({
+    const items = await spotifySearchTracks(q);
+    const tracks = items.map(t => ({
       id: t.id, uri: t.uri, name: t.name,
       artist: t.artists.map(a => a.name).join(', '),
       artistIds: t.artists.map(a => a.id),
@@ -842,13 +836,7 @@ app.post('/api/admin/queue', requireAdmin, async (req, res) => {
       const errData = await queueRes.json().catch(() => ({}));
       return res.status(queueRes.status).json({ error: errData.error?.message || 'Queue failed' });
     }
-    if (name) {
-      queuedThisSession[uri] = { name, artist: artist || '', queuedBy: 'Admin', queuedAt: Date.now() };
-      if (!mostRequested[uri]) mostRequested[uri] = { uri, name, artist: artist || '', image: image || null, count: 0 };
-      mostRequested[uri].count++;
-      saveLeaderboardEntry(uri);
-      logActivity('Admin', 'queued', name, artist || '');
-    }
+    if (name) recordQueuedTrack(uri, name, artist || '', image || null, 'Admin');
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

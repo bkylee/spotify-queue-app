@@ -643,11 +643,11 @@ function renderNPFull(d) {
     </div>
   `;
   if (d.playing && d.duration_ms) {
-    let el2 = d.progress_ms;
+    let progressMs = d.progress_ms;
     progressTimer = setInterval(() => {
-      el2 += 1000;
+      progressMs += 1000;
       const f = document.getElementById('npf-pf');
-      if (f) f.style.width = Math.min((el2 / d.duration_ms) * 100, 100) + '%';
+      if (f) f.style.width = Math.min((progressMs / d.duration_ms) * 100, 100) + '%';
     }, 1000);
   }
 }
@@ -663,7 +663,8 @@ function renderNPPill(d) {
 
 // ── Guests ────────────────────────────────────────────────────────────
 async function loadGuests() {
-  document.getElementById('guest-list').innerHTML = skeletonRows(3);
+  const list = document.getElementById('guest-list');
+  if (!list.querySelector('.gr')) list.innerHTML = skeletonRows(3);
   try {
     const d = await af('/api/admin/guests').then(r => r.json());
     const guests = d.guests || [];
@@ -776,8 +777,6 @@ async function blkSearch() {
   const el = document.getElementById('blk-results');
   el.innerHTML = `<div class="empty">Searching…</div>`;
   try {
-    const token = await fetch('/api/now-playing').then(() => null).catch(() => null);
-    // Use the search endpoint (requires guest session) — admin searches via direct Spotify proxy
     const res = await af(`/api/admin/search?q=${encodeURIComponent(q)}`);
     const d = await res.json();
     if (!d.tracks?.length) { el.innerHTML = `<div class="empty">No results</div>`; return; }
@@ -836,12 +835,16 @@ async function loadActivity() {
 // ── Most Requested ────────────────────────────────────────────────────
 async function loadMostRequested() {
   document.getElementById('mr-list').innerHTML = skeletonRows(3);
-  try {
-    const d = await af('/api/admin/most-requested').then(r => r.json());
-    const el = document.getElementById('mr-list');
-    if (!d.tracks?.length) { el.innerHTML = `<div class="empty">No requests yet</div>`; return; }
+  const [mrData, rxData] = await Promise.all([
+    af('/api/admin/most-requested').then(r => r.json()).catch(() => null),
+    fetch('/api/reaction-stats').then(r => r.json()).catch(() => null),
+  ]);
+
+  const el = document.getElementById('mr-list');
+  if (!mrData?.tracks?.length) { el.innerHTML = `<div class="empty">No requests yet</div>`; }
+  else {
     const medals = ['gold', 'silver', 'bronze'];
-    el.innerHTML = d.tracks.map((t, i) => `
+    el.innerHTML = mrData.tracks.map((t, i) => `
       <div class="mr-item">
         <span class="mr-rank${medals[i] ? ' ' + medals[i] : ''}">${i + 1}</span>
         <div class="mr-art">${t.image ? `<img src="${t.image}" alt=""/>` : ''}</div>
@@ -852,14 +855,12 @@ async function loadMostRequested() {
         <span class="mr-count">×${t.count}</span>
       </div>
     `).join('');
-  } catch {}
+  }
 
-  // Also load reaction stats
-  try {
-    const d = await fetch('/api/reaction-stats').then(r => r.json());
-    const el = document.getElementById('rx-admin-list');
-    if (!d.stats?.length) { el.innerHTML = `<div class="empty">No reactions yet</div>`; return; }
-    el.innerHTML = d.stats.map(s => `
+  const rxEl = document.getElementById('rx-admin-list');
+  if (!rxData?.stats?.length) { rxEl.innerHTML = `<div class="empty">No reactions yet</div>`; }
+  else {
+    rxEl.innerHTML = rxData.stats.map(s => `
       <div class="mr-item">
         <div class="mr-art">${s.image ? `<img src="${s.image}" alt=""/>` : ''}</div>
         <div class="mr-info">
@@ -873,13 +874,14 @@ async function loadMostRequested() {
         </div>
       </div>
     `).join('');
-  } catch {}
+  }
 }
 
 // ── Queue Management ──────────────────────────────────────────────────
 async function loadAdminQueue() {
   const el = document.getElementById('admin-q-list');
   if (!el) return;
+  el.innerHTML = skeletonRows(3);
   try {
     const d = await fetch('/api/queue-list').then(r => r.json());
     const tracks = d.tracks || [];
