@@ -26,7 +26,6 @@ A web app that lets guests add songs to a host's Spotify queue without needing a
 │   └── terraform.tfvars   # Your real values (gitignored)
 ├── .github/workflows/
 │   └── deploy.yml         # GitHub Actions CI/CD (auto-deploy on push to main)
-├── deploy.sh              # Manual deploy script (zip deploy to Azure)
 ├── .env                   # Local env vars (gitignored)
 └── .env.example           # Template for env vars
 ```
@@ -155,12 +154,6 @@ A web app that lets guests add songs to a host's Spotify queue without needing a
 ## Deploying code changes
 
 **Automatic (preferred):** push to `main` → GitHub Actions deploys automatically
-
-**Manual fallback:**
-
-```bash
-./deploy.sh
-```
 
 **Infrastructure changes only:**
 
