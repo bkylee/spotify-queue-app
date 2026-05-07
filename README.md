@@ -24,16 +24,17 @@ A web app that lets guests add songs to your Spotify queue without needing a Spo
 - **Copy code / copy link** — one-click sharing
 - **Rotate code** — generates a new code and immediately kicks all guests
 - **Guests** — live list with join time, songs queued per guest, remove button
-- **Settings** — configure songs per person limit (0 = unlimited), cooldown between songs (0 = no cooldown), pause/resume queueing toggle
+- **Settings** — configure songs per person limit (0 = unlimited), cooldown between songs (0 = no cooldown), pause/resume queueing toggle, code rotation interval, guest session duration
 - **Blocklist** — search Spotify to block specific tracks or artists; unblock anytime
 - **Activity log** — timestamped feed of every join, queue, block, and admin action
 - **Stats** — most requested leaderboard with gold/silver/bronze medals, reaction leaderboard per song
 - **Auto-refresh** — guests, now playing, and stats all refresh in the background
 
 ### Access Control
-- 6-character alphanumeric access codes auto-rotate every 8 hours
-- All guest sessions expire with the code
-- Admin can rotate the code manually at any time
+- 6-character alphanumeric access codes with configurable auto-rotation interval (default 8h, 1–24h range)
+- Guest session duration is independently configurable (default 8h, 1–24h range)
+- All guest sessions expire when the code rotates
+- Admin can rotate the code manually at any time, immediately kicking all guests
 - Admin can remove individual guests
 
 ### Persistence (Azure Table Storage)
@@ -53,11 +54,15 @@ The following is intentionally in-memory only:
 
 ## Tech Stack
 
-- **Backend** — Node.js / Express
+- **Runtime** — Node.js 22 LTS
+- **Backend** — Express
+- **Frontend** — Vanilla JS (no framework)
 - **Spotify API** — Web API (search, queue, now playing, profile)
-- **Storage** — Azure Table Storage
-- **Hosting** — Azure App Service
-- **Infrastructure** — Terraform
+- **Storage** — Azure Table Storage (`@azure/data-tables`)
+- **Hosting** — Azure App Service (Linux)
+- **DNS / Proxy** — Cloudflare
+- **Infrastructure** — Terraform (azurerm 4.x)
+- **CI/CD** — GitHub Actions (auto-deploys on push to `main`)
 - **QR codes** — `qrcode` npm package
 
 ---
@@ -146,7 +151,9 @@ cd ..
 
 ## Code Deploys
 
-After making code changes, deploy with:
+**Automatic (preferred):** push to `main` — GitHub Actions builds and deploys automatically.
+
+**Manual fallback:**
 
 ```bash
 ./deploy.sh
@@ -154,7 +161,7 @@ After making code changes, deploy with:
 
 This zips the app (excluding `node_modules`, `terraform`, `.git`) and deploys via Azure zip deploy without touching any infrastructure settings.
 
-For infrastructure changes (env vars, scaling, settings), use Terraform:
+**Infrastructure changes** (Node version, env vars, scaling):
 
 ```bash
 cd terraform
@@ -172,6 +179,7 @@ terraform apply -lock=false
 | `REDIRECT_URI` | Must match exactly what's set in Spotify dashboard |
 | `SPOTIFY_REFRESH_TOKEN` | Generated after running `/auth/login` |
 | `ADMIN_PASSWORD` | Password for `/admin.html` |
+| `HOST_NAME` | Host's name shown in guest UI (e.g. `Brian` → "Update Brian's Queue") |
 | `AZURE_STORAGE_CONNECTION_STRING` | Set automatically by Terraform |
 | `PORT` | Optional, defaults to 3000 |
 
@@ -193,7 +201,8 @@ terraform apply -lock=false
 - Spotify must be **actively playing** on a device for guests to queue songs
 - On the F1 free tier, the app may cold-start after ~20 min of inactivity — open it yourself before guests arrive
 - The refresh token persists across restarts — re-authorization is only needed if Spotify scopes change
-- `terraform.tfvars` and `terraform.tfstate` are gitignored and must never be committed
+- `terraform.tfvars`, `terraform.tfstate`, and `terraform.tfstate.*.backup` are gitignored — never commit them as they contain secrets
+- If Azure App Service settings are overwritten unexpectedly after a `terraform apply`, check `terraform.tfvars` for stale values
 
 ## License
 
