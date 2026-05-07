@@ -8,6 +8,7 @@
       href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap"
       rel="stylesheet"
     />
+    <script>document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark'</script>
     <style>
       *,
       *::before,
@@ -30,6 +31,15 @@
         --red: #ff5555;
         --radius: 12px;
         --rsm: 8px;
+      }
+      [data-theme="light"] {
+        --bg: #f5f5f5; --surface: #ffffff; --surface2: #f0f0f0;
+        --surface3: #e4e4e4; --border: rgba(0,0,0,0.08);
+        --border-h: rgba(0,0,0,0.15); --text: #111; --t2: rgba(0,0,0,0.55);
+        --t3: rgba(0,0,0,0.38); --red: #e53e3e;
+      }
+      [data-theme="light"] body::before {
+        background: radial-gradient(ellipse,rgba(29,185,84,0.07) 0%,transparent 70%);
       }
       body {
         font-family: "DM Sans", sans-serif;
@@ -877,9 +887,106 @@
         text-decoration: none;
         font-weight: 700;
       }
+
+      /* theme toggle */
+      #theme-btn {
+        position: fixed; top: 0.85rem; right: 0.85rem;
+        width: 36px; height: 36px; border-radius: 50%;
+        background: var(--surface, #1e1e1e); border: 1px solid var(--border, rgba(255,255,255,0.08));
+        color: var(--t2, rgba(255,255,255,0.6)); display: flex; align-items: center;
+        justify-content: center; cursor: pointer; z-index: 100;
+        transition: background 0.2s, color 0.2s; padding: 0;
+      }
+      #theme-btn:hover { color: var(--text, #fff); }
+
+      /* ─── Backdrop layers ─────────────────────────────────────────── */
+      .bd-layer {
+        position: fixed; inset: -8%; z-index: -2;
+        background-size: cover; background-position: center;
+        filter: blur(80px) saturate(2.2) brightness(0.28);
+        opacity: 0; transition: opacity 1.8s ease; pointer-events: none;
+      }
+      [data-theme="light"] .bd-layer {
+        filter: blur(80px) saturate(2) brightness(0.72);
+      }
+      .bd-layer.on { opacity: 1; }
+      body.has-bd::before { opacity: 0; transition: opacity 0.8s; }
+
+      /* ─── Glass cards (backdrop active) ──────────────────────────── */
+      body.has-bd #np-card,
+      body.has-bd .q-item, body.has-bd .track,
+      body.has-bd .sbar, body.has-bd .h-item,
+      body.has-bd .lb-item, body.has-bd .tabs,
+      body.has-bd #cooldown-wrap, body.has-bd .react-btn {
+        background: rgba(8,8,8,0.58);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        border-color: rgba(255,255,255,0.10);
+      }
+      body.has-bd #np-card.active { background: rgba(5,35,18,0.52); }
+      [data-theme="light"] body.has-bd #np-card,
+      [data-theme="light"] body.has-bd .q-item,
+      [data-theme="light"] body.has-bd .track,
+      [data-theme="light"] body.has-bd .sbar,
+      [data-theme="light"] body.has-bd .h-item,
+      [data-theme="light"] body.has-bd .lb-item,
+      [data-theme="light"] body.has-bd .tabs,
+      [data-theme="light"] body.has-bd #cooldown-wrap,
+      [data-theme="light"] body.has-bd .react-btn {
+        background: rgba(255,255,255,0.62);
+        border-color: rgba(255,255,255,0.5);
+      }
+      [data-theme="light"] body.has-bd #np-card.active {
+        background: rgba(220,255,232,0.65);
+      }
+
+      /* ─── Skeletons ───────────────────────────────────────────────── */
+      @keyframes shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      .sk-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 10px; border-radius: var(--rsm);
+        background: var(--surface); border: 1px solid var(--border);
+      }
+      .sk {
+        background: linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite linear;
+        border-radius: 4px; flex-shrink: 0;
+      }
+      .sk-sq { width: 34px; height: 34px; border-radius: 4px; }
+      .sk-lines { flex:1; display:flex; flex-direction:column; gap:5px; }
+      .sk-line { height: 10px; }
+      .sk-w60 { width: 60%; }
+      .sk-w35 { width: 35%; }
+
+      /* ─── Bottom nav (mobile) ─────────────────────────────────────── */
+      .bottom-nav {
+        display: none; position: fixed; bottom: 0; left: 0; right: 0;
+        background: var(--surface); border-top: 1px solid var(--border);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        z-index: 50; padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      .bn-btn {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; gap: 3px; padding: 9px 0 6px;
+        background: none; border: none; color: var(--t3);
+        font-family: "DM Sans", sans-serif; font-size: 0.67rem;
+        font-weight: 500; cursor: pointer; transition: color 0.15s;
+      }
+      .bn-btn.active { color: var(--green); }
+      @media (max-width: 560px) {
+        .tabs { display: none; }
+        .bottom-nav { display: flex; }
+        .wrap { padding-bottom: 5.5rem; }
+      }
     </style>
   </head>
   <body>
+    <div id="bd-a" class="bd-layer"></div>
+    <div id="bd-b" class="bd-layer"></div>
     <div class="wrap">
       <header>
         <div class="pfp" id="pfp">
@@ -1020,14 +1127,77 @@
       </div>
     </div>
 
+    <nav class="bottom-nav">
+      <button class="bn-btn active" id="bn-search" onclick="switchTab('search')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Search
+      </button>
+      <button class="bn-btn" id="bn-history" onclick="switchTab('history')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        History
+      </button>
+      <button class="bn-btn" id="bn-reactions" onclick="switchTab('reactions')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Reactions
+      </button>
+    </nav>
+
     <div id="expired-overlay">
       <h2>Access Expired</h2>
       <p>Your session has ended. Ask the host for a new code.</p>
       <a href="/">Get a new code</a>
     </div>
     <div id="toast"><span id="toast-text"></span></div>
+    <button id="theme-btn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme"></button>
 
     <script>
+      const MOON_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+      const SUN_SVG  = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+      function toggleTheme() {
+        const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem('theme', next);
+        syncThemeBtn();
+      }
+      function syncThemeBtn() {
+        const btn = document.getElementById('theme-btn');
+        if (btn) btn.innerHTML = document.documentElement.dataset.theme === 'light' ? MOON_SVG : SUN_SVG;
+      }
+      syncThemeBtn();
+
+      // ── Backdrop ────────────────────────────────────────────────────────────
+      let bdSlot = 'a', bdUrl = null;
+      function setBackdrop(url) {
+        if (url === bdUrl) return;
+        bdUrl = url;
+        if (!url) {
+          document.getElementById('bd-a').classList.remove('on');
+          document.getElementById('bd-b').classList.remove('on');
+          document.body.classList.remove('has-bd');
+          return;
+        }
+        const next = bdSlot === 'a' ? 'b' : 'a';
+        const el = document.getElementById('bd-' + next);
+        el.style.backgroundImage = `url('${url}')`;
+        requestAnimationFrame(() => {
+          el.classList.add('on');
+          document.getElementById('bd-' + bdSlot).classList.remove('on');
+          bdSlot = next;
+        });
+        document.body.classList.add('has-bd');
+      }
+
+      function skeletonRows(n) {
+        return Array.from({length: n}, () => `
+          <div class="sk-item">
+            <div class="sk sk-sq"></div>
+            <div class="sk-lines">
+              <div class="sk sk-line sk-w60"></div>
+              <div class="sk sk-line sk-w35"></div>
+            </div>
+          </div>`).join('');
+      }
+
       // ── Session ────────────────────────────────────────────────────────────
       const SID = localStorage.getItem("queueSessionId");
       const GNAME = localStorage.getItem("queueGuestName") || "Guest";
@@ -1130,6 +1300,11 @@
         document.getElementById("tab-" + name).classList.add("active");
         if (name === "history") loadHistory();
         if (name === "reactions") loadReactionStats();
+        // sync bottom nav
+        ['search','history','reactions'].forEach(t => {
+          const b = document.getElementById('bn-' + t);
+          if (b) b.classList.toggle('active', t === name);
+        });
       }
 
       // ── Profile ────────────────────────────────────────────────────────────
@@ -1163,12 +1338,14 @@
         const rxDiv = document.getElementById("reactions");
         clearInterval(progressTimer);
         if (!d.name) {
+          setBackdrop(null);
           card.className = "";
           card.innerHTML = `<div id="np-empty">Nothing playing right now</div>`;
           rxDiv.style.display = "none";
           return;
         }
         const pct = d.duration_ms ? (d.progress_ms / d.duration_ms) * 100 : 0;
+        setBackdrop(d.image || null);
         card.className = d.playing ? "active" : "";
         card.innerHTML = `
     <div class="np-art">
@@ -1244,6 +1421,7 @@
       async function loadQueue() {
         const btn = document.getElementById("ref-btn");
         btn.classList.add("spin");
+        document.getElementById('q-list').innerHTML = skeletonRows(4);
         try {
           const d = await fetch("/api/queue-list").then((r) => r.json());
           renderQueue(d.tracks || []);
