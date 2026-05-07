@@ -228,6 +228,7 @@
 
   <div class="nav">
     <button class="nt active" data-page="overview" onclick="showPage('overview',this)">Overview</button>
+    <button class="nt" data-page="queue" onclick="showPage('queue',this)">Queue</button>
     <button class="nt" data-page="guests" onclick="showPage('guests',this)">Guests</button>
     <button class="nt" data-page="settings" onclick="showPage('settings',this)">Settings</button>
     <button class="nt" data-page="blocklist" onclick="showPage('blocklist',this)">Blocklist</button>
@@ -391,6 +392,34 @@
     <div id="act-list"><div class="empty">No activity yet</div></div>
   </div>
 
+  <!-- Queue -->
+  <div class="page" id="page-queue">
+    <div class="card">
+      <p class="ct">Playback</p>
+      <div id="qp-now-playing" style="font-size:.88rem;color:var(--t2);margin-bottom:.9rem;min-height:1.1em">Nothing playing</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="bsm bo" id="play-pause-btn" onclick="togglePlayback()">▶ Play</button>
+        <button class="bsm bd" onclick="skipTrack()">⏭ Skip Track</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="hdr">
+        <p class="ct" style="margin:0">Up Next</p>
+        <button class="bsm bo" onclick="loadAdminQueue()">↺ Refresh</button>
+      </div>
+      <p style="font-size:.73rem;color:var(--t3);margin-bottom:.8rem">Spotify's API doesn't support removing individual tracks from the queue. Use Skip to advance playback.</p>
+      <div id="admin-q-list"><div class="empty">Loading…</div></div>
+    </div>
+    <div class="card">
+      <p class="ct">Add to Queue</p>
+      <div class="sr-row">
+        <input type="text" id="aq-q" placeholder="Search for a track to add…" onkeydown="if(event.key==='Enter')adminQueueSearch()"/>
+        <button class="sg" onclick="adminQueueSearch()">Search</button>
+      </div>
+      <div id="aq-results"></div>
+    </div>
+  </div>
+
   <!-- Stats -->
   <div class="page" id="page-stats">
     <div class="hdr">
@@ -414,6 +443,8 @@
 let adminPw = '', codeData = null, appUrl = '';
 let settings = { maxSongsPerPerson: 0, cooldownSeconds: 120, queuingPaused: false };
 let progressTimer = null;
+let isPlaying = false;
+let adminQSearchResults = [];
 
 // ── Auth ──────────────────────────────────────────────────────────────
 document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
@@ -468,6 +499,7 @@ function showPage(name, btn) {
   if (name === 'stats') loadMostRequested();
   if (name === 'blocklist') loadBlocklist();
   if (name === 'guests') loadGuests();
+  if (name === 'queue') loadAdminQueue();
 }
 
 // ── Code & QR ─────────────────────────────────────────────────────────
@@ -515,6 +547,10 @@ async function loadNowPlaying() {
 }
 
 function renderNPFull(d) {
+  isPlaying = d.playing || false;
+  updatePlayPauseBtn();
+  const qpEl = document.getElementById('qp-now-playing');
+  if (qpEl) qpEl.textContent = d.name ? `${d.name} · ${d.artist}` : 'Nothing playing';
   const el = document.getElementById('np-full');
   clearInterval(progressTimer);
   if (!d.name) { el.innerHTML = `<div class="empty">Nothing playing right now</div>`; return; }
@@ -768,6 +804,92 @@ async function loadMostRequested() {
   } catch {}
 }
 
+// ── Queue Management ──────────────────────────────────────────────────
+async function loadAdminQueue() {
+  const el = document.getElementById('admin-q-list');
+  if (!el) return;
+  try {
+    const d = await fetch('/api/queue-list').then(r => r.json());
+    const tracks = d.tracks || [];
+    if (!tracks.length) { el.innerHTML = `<div class="empty">Queue is empty</div>`; return; }
+    el.innerHTML = tracks.map((t, i) => `
+      <div class="mr-item">
+        <span class="mr-rank">${i + 1}</span>
+        <div class="mr-art">${t.image ? `<img src="${t.image}" alt=""/>` : ''}</div>
+        <div class="mr-info">
+          <div class="mr-name">${esc(t.name)}</div>
+          <div class="mr-artist">${esc(t.artist)}${t.queuedBy ? ` · <span style="color:var(--green)">by ${esc(t.queuedBy)}</span>` : ''}</div>
+        </div>
+        <span style="font-size:.72rem;color:var(--t3);flex-shrink:0">${fmt(t.duration_ms)}</span>
+      </div>
+    `).join('');
+  } catch {}
+}
+
+async function skipTrack() {
+  try {
+    await af('/api/admin/player/skip', { method: 'POST' });
+    toast('Skipped to next track', 'success');
+    setTimeout(() => { loadNowPlaying(); loadAdminQueue(); }, 1000);
+  } catch { toast('Skip failed', 'error'); }
+}
+
+async function togglePlayback() {
+  try {
+    const endpoint = isPlaying ? '/api/admin/player/pause' : '/api/admin/player/play';
+    await af(endpoint, { method: 'PUT' });
+    isPlaying = !isPlaying;
+    updatePlayPauseBtn();
+    toast(isPlaying ? 'Playing' : 'Paused', 'success');
+  } catch { toast('Playback control failed', 'error'); }
+}
+
+function updatePlayPauseBtn() {
+  const btn = document.getElementById('play-pause-btn');
+  if (btn) btn.textContent = isPlaying ? '⏸ Pause' : '▶ Play';
+}
+
+async function adminQueueSearch() {
+  const q = document.getElementById('aq-q').value.trim();
+  if (!q) return;
+  const el = document.getElementById('aq-results');
+  el.innerHTML = `<div class="empty">Searching…</div>`;
+  try {
+    const d = await af(`/api/admin/search?q=${encodeURIComponent(q)}`).then(r => r.json());
+    adminQSearchResults = d.tracks || [];
+    if (!adminQSearchResults.length) { el.innerHTML = `<div class="empty">No results</div>`; return; }
+    el.innerHTML = adminQSearchResults.map((t, i) => `
+      <div class="br-item">
+        <div class="br-art">${t.image ? `<img src="${t.image}" alt=""/>` : ''}</div>
+        <div class="br-info">
+          <div class="br-name">${esc(t.name)}</div>
+          <div class="br-meta">${esc(t.artist)}</div>
+        </div>
+        <button class="sg" style="font-size:.76rem;padding:.35rem .75rem;white-space:nowrap" onclick="adminAddToQueue(${i})">+ Queue</button>
+      </div>
+    `).join('');
+  } catch { el.innerHTML = `<div class="empty">Search failed</div>`; }
+}
+
+async function adminAddToQueue(idx) {
+  const track = adminQSearchResults[idx];
+  if (!track) return;
+  try {
+    const res = await af('/api/admin/queue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uri: track.uri, name: track.name, artist: track.artist, image: track.image || null })
+    });
+    if (res.ok) {
+      toast(`"${track.name}" queued`, 'success');
+      setTimeout(loadAdminQueue, 1200);
+    } else {
+      const d = await res.json();
+      toast(d.error || 'Failed to queue', 'error');
+    }
+  } catch { toast('Network error', 'error'); }
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────
 function toast(msg, type = 'success') {
   const t = document.getElementById('toast');
@@ -778,6 +900,11 @@ function toast(msg, type = 'success') {
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function fmt(ms) {
+  const s = Math.round(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
 
 function timeAgo(ts) {
   const m = Math.floor((Date.now() - ts) / 60000);

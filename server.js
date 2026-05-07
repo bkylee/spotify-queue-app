@@ -788,6 +788,73 @@ app.get('/api/admin/search', requireAdmin, async (req, res) => {
   } catch { res.status(500).json({ error: 'Search failed' }); }
 });
 
+// ─── Admin: player controls & queue ──────────────────────────────────
+
+app.post('/api/admin/player/skip', requireAdmin, async (req, res) => {
+  try {
+    const token = await getAccessToken();
+    const response = await fetch('https://api.spotify.com/v1/me/player/next', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    res.json({ success: response.ok || response.status === 204 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/admin/player/pause', requireAdmin, async (req, res) => {
+  try {
+    const token = await getAccessToken();
+    await fetch('https://api.spotify.com/v1/me/player/pause', {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/admin/player/play', requireAdmin, async (req, res) => {
+  try {
+    const token = await getAccessToken();
+    await fetch('https://api.spotify.com/v1/me/player/play', {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/queue', requireAdmin, async (req, res) => {
+  const { uri, name, artist, image } = req.body;
+  if (!uri) return res.status(400).json({ error: 'Missing track URI' });
+  try {
+    const token = await getAccessToken();
+    const queueRes = await fetch(
+      `https://api.spotify.com/v1/me/player/queue?uri=${encodeURIComponent(uri)}`,
+      { method: 'POST', headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!queueRes.ok) {
+      const errData = await queueRes.json().catch(() => ({}));
+      return res.status(queueRes.status).json({ error: errData.error?.message || 'Queue failed' });
+    }
+    if (name) {
+      queuedThisSession[uri] = { name, artist: artist || '', queuedBy: 'Admin', queuedAt: Date.now() };
+      if (!mostRequested[uri]) mostRequested[uri] = { uri, name, artist: artist || '', image: image || null, count: 0 };
+      mostRequested[uri].count++;
+      saveLeaderboardEntry(uri);
+      logActivity('Admin', 'queued', name, artist || '');
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Boot ─────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
