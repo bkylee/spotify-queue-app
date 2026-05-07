@@ -472,7 +472,7 @@ app.get('/api/now-playing', async (req, res) => {
       name: t.name, artist: t.artists.map(a => a.name).join(', '),
       album: t.album.name,
       image: t.album.images?.[1]?.url || t.album.images?.[0]?.url || null,
-      progress_ms: response.data.progress_ms, duration_ms: t.duration_ms,
+      progress_ms: nowData.progress_ms, duration_ms: t.duration_ms,
       reactions: reactions[uri],
     };
     nowPlayingCache = npData; // cache for reaction lookups
