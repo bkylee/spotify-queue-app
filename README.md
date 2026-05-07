@@ -23,6 +23,7 @@ A web app that lets guests add songs to your Spotify queue without needing a Spo
 - **QR code** — downloadable QR that opens the app directly
 - **Copy code / copy link** — one-click sharing
 - **Rotate code** — generates a new code and immediately kicks all guests
+- **Queue** — live up-next list with attribution, play/pause/skip playback controls, and add-to-queue search so the admin can queue tracks directly
 - **Guests** — live list with join time, songs queued per guest, remove button
 - **Settings** — configure songs per person limit (0 = unlimited), cooldown between songs (0 = no cooldown), pause/resume queueing toggle, code rotation interval, guest session duration
 - **Blocklist** — search Spotify to block specific tracks or artists; unblock anytime
@@ -63,6 +64,7 @@ The following is intentionally in-memory only:
 - **DNS / Proxy** — Cloudflare
 - **Infrastructure** — Terraform (azurerm 4.x)
 - **CI/CD** — GitHub Actions (auto-deploys on push to `main`)
+- **HTTP** — native `fetch` (Node 22 built-in, no axios)
 - **QR codes** — `qrcode` npm package
 
 ---
@@ -142,24 +144,13 @@ az webapp config appsettings set \
 
 ### 4. Deploy code
 
-```bash
-cd ..
-./deploy.sh
-```
+Push to `main` — GitHub Actions deploys automatically.
 
 ---
 
 ## Code Deploys
 
 **Automatic (preferred):** push to `main` — GitHub Actions builds and deploys automatically.
-
-**Manual fallback:**
-
-```bash
-./deploy.sh
-```
-
-This zips the app (excluding `node_modules`, `terraform`, `.git`) and deploys via Azure zip deploy without touching any infrastructure settings.
 
 **Infrastructure changes** (Node version, env vars, scaling):
 
@@ -178,7 +169,7 @@ terraform apply -lock=false
 | `SPOTIFY_CLIENT_SECRET` | From your Spotify app dashboard |
 | `REDIRECT_URI` | Must match exactly what's set in Spotify dashboard |
 | `SPOTIFY_REFRESH_TOKEN` | Generated after running `/auth/login` |
-| `ADMIN_PASSWORD` | Password for `/admin.html` |
+| `ADMIN_PASSWORD` | Password for `/admin.html` — **required**, app won't start without it |
 | `HOST_NAME` | Host's name shown in guest UI (e.g. `Brian` → "Update Brian's Queue") |
 | `AZURE_STORAGE_CONNECTION_STRING` | Set automatically by Terraform |
 | `PORT` | Optional, defaults to 3000 |
