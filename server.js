@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
@@ -15,7 +14,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/callback';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+if (!process.env.ADMIN_PASSWORD) {
+  console.error('FATAL: ADMIN_PASSWORD env var is required');
+  process.exit(1);
+}
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const HOST_NAME = process.env.HOST_NAME || 'Your Host';
 const STORAGE_CONN = process.env.AZURE_STORAGE_CONNECTION_STRING;
 
@@ -235,7 +238,7 @@ async function saveActivityEntry(entry) {
 // ─── In-memory only stores ────────────────────────────────────────────
 
 let tokenStore = {
-  access_token: process.env.SPOTIFY_ACCESS_TOKEN || null,
+  access_token: null,
   refresh_token: process.env.SPOTIFY_REFRESH_TOKEN || null,
   expires_at: 0,
 };
@@ -291,15 +294,19 @@ function isValidSession(sessionId) {
 async function refreshAccessToken() {
   if (!tokenStore.refresh_token) throw new Error('No refresh token.');
   const params = new URLSearchParams({ grant_type: 'refresh_token', refresh_token: tokenStore.refresh_token });
-  const response = await axios.post('https://accounts.spotify.com/api/token', params.toString(), {
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       Authorization: 'Basic ' + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64'),
     },
+    body: params.toString(),
   });
-  tokenStore.access_token = response.data.access_token;
-  tokenStore.expires_at = Date.now() + response.data.expires_in * 1000 - 60000;
-  if (response.data.refresh_token) tokenStore.refresh_token = response.data.refresh_token;
+  if (!response.ok) throw new Error(`Token refresh failed: ${response.status}`);
+  const data = await response.json();
+  tokenStore.access_token = data.access_token;
+  tokenStore.expires_at = Date.now() + data.expires_in * 1000 - 60000;
+  if (data.refresh_token) tokenStore.refresh_token = data.refresh_token;
   return tokenStore.access_token;
 }
 
@@ -313,18 +320,20 @@ async function getAccessToken() {
 setInterval(async () => {
   try {
     const token = await getAccessToken();
-    const res = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
+    const res = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (res.status === 204 || !res.data?.item) return;
-    const uri = res.data.item.uri;
+    if (res.status === 204 || !res.ok) return;
+    const resData = await res.json();
+    if (!resData?.item) return;
+    const uri = resData.item.uri;
     if (uri !== lastPlayingUri) {
       if (lastPlayingUri) {
         queueHistory.unshift({
           uri: lastPlayingUri,
-          name: res.data.item.name,
-          artist: res.data.item.artists.map(a => a.name).join(', '),
-          image: res.data.item.album.images?.[2]?.url || null,
+          name: resData.item.name,
+          artist: resData.item.artists.map(a => a.name).join(', '),
+          image: resData.item.album.images?.[2]?.url || null,
           playedAt: Date.now(),
         });
         if (queueHistory.length > 50) queueHistory.pop();
@@ -378,23 +387,30 @@ app.get('/callback', async (req, res) => {
   if (!code) return res.status(400).send('No auth code.');
   try {
     const params = new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: REDIRECT_URI });
-    const response = await axios.post('https://accounts.spotify.com/api/token', params.toString(), {
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         Authorization: 'Basic ' + Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64'),
       },
+      body: params.toString(),
     });
-    tokenStore.access_token = response.data.access_token;
-    tokenStore.refresh_token = response.data.refresh_token;
-    tokenStore.expires_at = Date.now() + response.data.expires_in * 1000 - 60000;
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error_description || `Auth failed: ${response.status}`);
+    }
+    const tokenData = await response.json();
+    tokenStore.access_token = tokenData.access_token;
+    tokenStore.refresh_token = tokenData.refresh_token;
+    tokenStore.expires_at = Date.now() + tokenData.expires_in * 1000 - 60000;
     res.send(`<html><body style="font-family:sans-serif;padding:2rem;background:#0f0f0f;color:#fff">
       <h2>✅ Authorized!</h2>
       <p style="font-size:12px;color:#888">Save as SPOTIFY_REFRESH_TOKEN:</p>
-      <code style="background:#222;padding:8px;display:block;border-radius:6px;word-break:break-all">${tokenStore.refresh_token}</code>
+      <code style="background:#222;padding:8px;display:block;border-radius:6px;word-break:break-all">${tokenData.refresh_token}</code>
       <p><a href="/" style="color:#1db954">Go to app →</a></p>
     </body></html>`);
   } catch (err) {
-    res.status(500).send('Auth failed: ' + (err.response?.data?.error_description || err.message));
+    res.status(500).send('Auth failed: ' + err.message);
   }
 });
 
@@ -433,8 +449,9 @@ app.get('/api/host-name', (req, res) => {
 app.get('/api/me', async (req, res) => {
   try {
     const token = await getAccessToken();
-    const response = await axios.get('https://api.spotify.com/v1/me', { headers: { Authorization: `Bearer ${token}` } });
-    const { display_name, images } = response.data;
+    const response = await fetch('https://api.spotify.com/v1/me', { headers: { Authorization: `Bearer ${token}` } });
+    if (!response.ok) throw new Error('Profile fetch failed');
+    const { display_name, images } = await response.json();
     res.json({ name: display_name, image: images?.[0]?.url || null });
   } catch { res.status(500).json({ error: 'Could not fetch profile' }); }
 });
@@ -442,13 +459,16 @@ app.get('/api/me', async (req, res) => {
 app.get('/api/now-playing', async (req, res) => {
   try {
     const token = await getAccessToken();
-    const response = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', { headers: { Authorization: `Bearer ${token}` } });
-    if (response.status === 204 || !response.data?.item) return res.json({ playing: false });
-    const t = response.data.item;
+    const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', { headers: { Authorization: `Bearer ${token}` } });
+    if (response.status === 204) return res.json({ playing: false });
+    if (!response.ok) throw new Error('Now playing fetch failed');
+    const nowData = await response.json();
+    if (!nowData?.item) return res.json({ playing: false });
+    const t = nowData.item;
     const uri = t.uri;
     if (!reactions[uri]) reactions[uri] = { '🔥': 0, '👍': 0, '💀': 0 };
     const npData = {
-      playing: response.data.is_playing, uri,
+      playing: nowData.is_playing, uri,
       name: t.name, artist: t.artists.map(a => a.name).join(', '),
       album: t.album.name,
       image: t.album.images?.[1]?.url || t.album.images?.[0]?.url || null,
@@ -463,8 +483,10 @@ app.get('/api/now-playing', async (req, res) => {
 app.get('/api/queue-list', async (req, res) => {
   try {
     const token = await getAccessToken();
-    const response = await axios.get('https://api.spotify.com/v1/me/player/queue', { headers: { Authorization: `Bearer ${token}` } });
-    const tracks = (response.data.queue || []).slice(0, 15).map(t => {
+    const response = await fetch('https://api.spotify.com/v1/me/player/queue', { headers: { Authorization: `Bearer ${token}` } });
+    if (!response.ok) throw new Error('Queue fetch failed');
+    const queueData = await response.json();
+    const tracks = (queueData.queue || []).slice(0, 15).map(t => {
       const meta = queuedThisSession[t.uri] || {};
       return {
         uri: t.uri, name: t.name,
@@ -504,11 +526,14 @@ app.get('/api/search', requireGuest, async (req, res) => {
   if (!q || q.trim().length < 2) return res.json({ tracks: [] });
   try {
     const token = await getAccessToken();
-    const response = await axios.get('https://api.spotify.com/v1/search', {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { q, type: 'track', limit: 8 },
-    });
-    const tracks = response.data.tracks.items.map(t => {
+    const searchUrl = new URL('https://api.spotify.com/v1/search');
+    searchUrl.searchParams.set('q', q);
+    searchUrl.searchParams.set('type', 'track');
+    searchUrl.searchParams.set('limit', '8');
+    const response = await fetch(searchUrl, { headers: { Authorization: `Bearer ${token}` } });
+    if (!response.ok) throw new Error('Search failed');
+    const searchData = await response.json();
+    const tracks = searchData.tracks.items.map(t => {
       const isBlocked = blocklist.some(b =>
         (b.type === 'track' && b.id === t.id) ||
         (b.type === 'artist' && t.artists.some(a => a.id === b.id))
@@ -557,11 +582,16 @@ app.post('/api/queue', requireGuest, async (req, res) => {
 
   try {
     const token = await getAccessToken();
-    await axios.post(
+    const queueRes = await fetch(
       `https://api.spotify.com/v1/me/player/queue?uri=${encodeURIComponent(uri)}`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
+      { method: 'POST', headers: { Authorization: `Bearer ${token}` } }
     );
+    if (!queueRes.ok) {
+      const errData = await queueRes.json().catch(() => ({}));
+      const err = new Error(errData.error?.message || 'Queue request failed');
+      err.status = queueRes.status;
+      throw err;
+    }
 
     session.songsQueued++;
     session.lastQueuedAt = Date.now();
@@ -574,8 +604,8 @@ app.post('/api/queue', requireGuest, async (req, res) => {
     logActivity(session.name, 'queued', name, artist);
     res.json({ success: true });
   } catch (err) {
-    const msg = err.response?.data?.error?.message || err.message;
-    const status = err.response?.status || 500;
+    const status = err.status || 500;
+    const msg = err.message;
     if (status === 404) res.status(404).json({ error: 'No active Spotify device found.' });
     else res.status(status).json({ error: msg });
   }
@@ -741,11 +771,14 @@ app.get('/api/admin/search', requireAdmin, async (req, res) => {
   if (!q) return res.json({ tracks: [] });
   try {
     const token = await getAccessToken();
-    const response = await axios.get('https://api.spotify.com/v1/search', {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { q, type: 'track', limit: 8 },
-    });
-    const tracks = response.data.tracks.items.map(t => ({
+    const searchUrl = new URL('https://api.spotify.com/v1/search');
+    searchUrl.searchParams.set('q', q);
+    searchUrl.searchParams.set('type', 'track');
+    searchUrl.searchParams.set('limit', '8');
+    const response = await fetch(searchUrl, { headers: { Authorization: `Bearer ${token}` } });
+    if (!response.ok) throw new Error('Search failed');
+    const searchData = await response.json();
+    const tracks = searchData.tracks.items.map(t => ({
       id: t.id, uri: t.uri, name: t.name,
       artist: t.artists.map(a => a.name).join(', '),
       artistIds: t.artists.map(a => a.id),
