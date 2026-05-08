@@ -18,6 +18,7 @@ A web app that lets guests add songs to your Spotify queue without needing a Spo
 - **Session expiry** — countdown showing when access expires, expired overlay with re-entry prompt
 - **Light/dark mode** — toggle persisted in `localStorage`, applied before first paint to avoid flash
 - **Mobile bottom tab bar** — fixed bottom navigation for Search / History / Reactions on small screens
+- **Typography** — Inter (body) + Plus Jakarta Sans (headings)
 
 ### Admin Dashboard (`/admin.html`)
 - **Password-protected login** — session persists across page refreshes
@@ -33,6 +34,7 @@ A web app that lets guests add songs to your Spotify queue without needing a Spo
 - **Stats** — most requested leaderboard with gold/silver/bronze medals, reaction leaderboard per song
 - **Auto-refresh** — guests, now playing, and stats all refresh in the background
 - **Light/dark mode** — same toggle available on the admin dashboard
+- **Mobile-optimized** — settings rows stack vertically, touch targets enlarged, layout adapts to small screens
 
 ### Access Control
 - 6-character alphanumeric access codes with configurable auto-rotation interval (default 8h, 1–24h range)
