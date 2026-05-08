@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Brian's Queue</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
     <script>document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark'</script>
@@ -42,9 +42,10 @@
         background: radial-gradient(ellipse,rgba(29,185,84,0.07) 0%,transparent 70%);
       }
       body {
-        font-family: "DM Sans", sans-serif;
+        font-family: "Inter", sans-serif;
         background: var(--bg);
         color: var(--text);
+        letter-spacing: -0.01em;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
@@ -99,7 +100,7 @@
         display: block;
       }
       h1 {
-        font-family: "Syne", sans-serif;
+        font-family: "Plus Jakarta Sans", sans-serif;
         font-size: clamp(1.5rem, 5vw, 2.1rem);
         font-weight: 800;
         letter-spacing: -0.03em;
@@ -272,7 +273,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        color: #fff;
+        color: var(--text);
       }
       .np-meta {
         font-size: 0.77rem;
@@ -422,7 +423,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        color: #fff;
+        color: var(--text);
       }
       .q-sub {
         font-size: 0.72rem;
@@ -532,7 +533,7 @@
         border: 1px solid var(--border);
         border-radius: var(--radius);
         padding: 0.85rem 1rem 0.85rem 2.8rem;
-        font-family: "DM Sans", sans-serif;
+        font-family: "Inter", sans-serif;
         font-size: 1rem;
         color: var(--text);
         outline: none;
@@ -634,7 +635,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        color: #fff;
+        color: var(--text);
       }
       .t-meta {
         font-size: 0.77rem;
@@ -719,7 +720,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        color: #fff;
+        color: var(--text);
       }
       .h-sub {
         font-size: 0.72rem;
@@ -783,7 +784,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        color: #fff;
+        color: var(--text);
       }
       .lb-artist {
         font-size: 0.72rem;
@@ -871,7 +872,7 @@
         display: flex;
       }
       #expired-overlay h2 {
-        font-family: "Syne", sans-serif;
+        font-family: "Plus Jakarta Sans", sans-serif;
         font-size: 1.5rem;
         margin-bottom: 0.5rem;
       }
@@ -973,7 +974,7 @@
         flex: 1; display: flex; flex-direction: column;
         align-items: center; gap: 3px; padding: 9px 0 6px;
         background: none; border: none; color: var(--t3);
-        font-family: "DM Sans", sans-serif; font-size: 0.67rem;
+        font-family: "Inter", sans-serif; font-size: 0.67rem;
         font-weight: 500; cursor: pointer; transition: color 0.15s;
       }
       .bn-btn.active { color: var(--green); }
@@ -981,6 +982,24 @@
         .tabs { display: none; }
         .bottom-nav { display: flex; }
         .wrap { padding-bottom: 5.5rem; }
+      }
+
+      /* ─── Mobile polish ───────────────────────────────────────── */
+      @media (max-width: 480px) {
+        header { padding: 1.5rem 0 1rem; }
+        h1 { font-size: clamp(1.4rem, 8vw, 2rem); }
+        .sbar { padding: 7px 10px; }
+        #np-card { padding: 10px; }
+        .react-btn { padding: 8px 14px; }
+        .q-item { padding: 9px 10px; }
+        .track { padding: 10px; }
+        .t-art { width: 40px; height: 40px; }
+        .bn-btn { padding: 10px 0 8px; font-size: 0.65rem; }
+      }
+
+      @media (max-width: 360px) {
+        .wrap { padding: 0 0.75rem 4rem; }
+        .sbar { font-size: 0.74rem; }
       }
     </style>
   </head>
