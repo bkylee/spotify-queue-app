@@ -202,4 +202,4 @@ terraform apply -lock=false
 
 ## License
 
-MIT
+[MIT](LICENSE) — open source, free to use and self-host.
